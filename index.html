@@ -225,4 +225,124 @@
 </script>
 
 </body>
+</html>            </div>
+        </div>
+    </div>
+</div>
+
+<div id="video-container" onmousedown="dragStartCam(event)" ontouchstart="dragStartCam(event)">
+    <video id="webcam" autoplay playsinline muted></video>
+</div>
+
+<div id="display-area" onmousedown="dragStartText(event)" ontouchstart="dragStartText(event)">
+    <div id="scrolling-text">এখানে লেখা আসবে...</div>
+</div>
+
+<script>
+    let scrollInterval, isPaused = true, currentY = 0;
+    let currentFontSize = 30, currentCamSize = 150, isDraggingText = false, startY;
+
+    const scrollText = document.getElementById('scrolling-text');
+    const speedInput = document.getElementById('speedRange');
+    const displayArea = document.getElementById('display-area');
+    const videoCont = document.getElementById('video-container');
+    const videoElem = document.getElementById('webcam');
+    const menu = document.getElementById('dropdown-menu');
+
+    // ১. বিউটি ফিল্টার ফাংশন
+    function setBeauty(mode) {
+        if(mode === 'on') {
+            // মুখ স্মুথ এবং উজ্জ্বল করার জন্য ফিল্টার
+            videoElem.style.filter = "brightness(1.2) contrast(1.1) saturate(1.1) blur(0.4px)";
+            document.getElementById('beautyOn').classList.add('active-filter');
+            document.getElementById('beautyOff').classList.remove('active-filter');
+        } else {
+            videoElem.style.filter = "none";
+            document.getElementById('beautyOff').classList.add('active-filter');
+            document.getElementById('beautyOn').classList.remove('active-filter');
+        }
+    }
+
+    // ২. ক্যামেরা শেপ পরিবর্তন
+    function changeShape(type) {
+        videoCont.style.borderRadius = type;
+    }
+
+    // ৩. টেক্সট ড্র্যাগ ও স্ক্রল
+    function dragStartText(e) {
+        if (menu.style.display === "block") { menu.style.display = "none"; return; }
+        isPaused = true; isDraggingText = true;
+        let ev = e.type === 'touchstart' ? e.touches[0] : e;
+        startY = ev.clientY - currentY;
+        document.onmousemove = dragText; document.ontouchmove = dragText;
+        document.onmouseup = dragEndText; document.ontouchend = dragEndText;
+    }
+    function dragText(e) {
+        if (!isDraggingText) return;
+        let ev = e.type === 'touchmove' ? e.touches[0] : e;
+        currentY = ev.clientY - startY;
+        scrollText.style.top = currentY + "px";
+    }
+    function dragEndText() { isDraggingText = false; isPaused = false; document.onmousemove = null; document.ontouchmove = null; }
+
+    function startScroll() {
+        const text = document.getElementById('inputText').value;
+        if(!text) return alert("স্ক্রিপ্ট দিন!");
+        scrollText.innerText = text;
+        currentY = displayArea.offsetHeight;
+        isPaused = false;
+        if(scrollInterval) clearInterval(scrollInterval);
+        scrollInterval = setInterval(() => {
+            if (!isPaused && !isDraggingText) {
+                currentY -= parseFloat(speedInput.value);
+                scrollText.style.top = currentY + "px";
+                if (currentY < -scrollText.offsetHeight) currentY = displayArea.offsetHeight;
+            }
+        }, 25);
+    }
+
+    // ৪. সেটিংস ও ক্যামেরা লজিক
+    function toggleSettings(e) { e.stopPropagation(); menu.style.display = (menu.style.display === "block") ? "none" : "block"; }
+    function closeSettings(e) { if (menu.style.display === "block") menu.style.display = "none"; }
+    function changeFontSize(amount) { currentFontSize += amount; scrollText.style.fontSize = currentFontSize + "px"; }
+    function changeCamSize(amount) {
+        currentCamSize += amount;
+        videoCont.style.width = currentCamSize + "px"; videoCont.style.height = currentCamSize + "px";
+    }
+
+    async function toggleCamera() {
+        if (videoCont.style.display === "block") {
+            videoCont.style.display = "none";
+            if(videoElem.srcObject) { videoElem.srcObject.getTracks().forEach(t => t.stop()); videoElem.srcObject = null; }
+        } else {
+            videoCont.style.display = "block";
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+                videoElem.srcObject = stream;
+            } catch (err) { alert("ক্যামেরা অন হচ্ছে না!"); }
+        }
+    }
+
+    // ক্যামেরা ড্র্যাগিং
+    let camActive = false, camInitX, camInitY;
+    function dragStartCam(e) {
+        let ev = e.type === 'touchstart' ? e.touches[0] : e;
+        camInitX = ev.clientX - videoCont.offsetLeft;
+        camInitY = ev.clientY - videoCont.offsetTop;
+        camActive = true;
+        document.onmousemove = dragCam; document.ontouchmove = dragCam;
+        document.onmouseup = dragEndCam; document.ontouchend = dragEndCam;
+    }
+    function dragCam(e) {
+        if (camActive) {
+            let ev = e.type === 'touchmove' ? e.touches[0] : e;
+            videoCont.style.left = (ev.clientX - camInitX) + "px";
+            videoCont.style.top = (ev.clientY - camInitY) + "px";
+            videoCont.style.right = "auto";
+        }
+    }
+    function dragEndCam() { camActive = false; }
+</script>
+
+</body>
 </html>
