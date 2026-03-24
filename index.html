@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI প্রো টেলিপম্পটার V19</title>
+    <title>AI প্রো টেলিপম্পটার V20</title>
     <style>
         body {
             margin: 0; background-color: #000; color: #fff;
@@ -38,7 +38,7 @@
         .setting-label { display: block; margin-bottom: 8px; font-size: 13px; color: #bbb; }
         .btn-group { display: flex; gap: 8px; }
 
-        /* ক্যামেরা */
+        /* ক্যামেরা ড্র্যাগেবল */
         #video-container {
             position: absolute; top: 180px; right: 20px; 
             width: 150px; height: 150px; border: 3px solid #007bff;
@@ -53,10 +53,10 @@
             position: absolute; left: 50%; transform: translateX(-50%);
             width: 92%; text-align: center; font-size: 30px; font-weight: bold;
             line-height: 1.6; pointer-events: none; user-select: none; white-space: pre-wrap;
-            top: 100px;
+            top: 100px; /* Initial static position */
         }
 
-        /* রেকর্ড মেনু ও টাইমার */
+        /* রেকর্ড মেনু */
         .rec-container {
             position: fixed; bottom: 30px; right: 30px;
             display: flex; flex-direction: row-reverse; align-items: center; gap: 12px; z-index: 5000;
@@ -76,6 +76,7 @@
             cursor: pointer; box-shadow: 0 0 15px rgba(255,0,0,0.4);
         }
 
+        /* বাটন স্টাইল */
         button { padding: 10px 15px; cursor: pointer; border-radius: 20px; border: none; font-weight: bold; font-size: 13px; color: white; }
         .btn-blue { background: #007bff; }
         .btn-green { background: #28a745; }
@@ -92,7 +93,7 @@
 <div id="controls">
     <textarea id="inputText" oninput="updateLiveText()" placeholder="আপনার স্ক্রিপ্ট এখানে পেস্ট করুন..."></textarea>
     <div class="main-buttons">
-        <button class="btn-blue" onclick="startScroll()">শুরু</button>
+        <button class="btn-blue" onclick="refreshAndStartScroll()">শুরু</button>
         <button class="btn-green" onclick="toggleCamera()">ক্যামেরা</button>
         <div style="position: relative;" onclick="event.stopPropagation()">
             <button class="btn-gray" onclick="toggleSettings()">সেটিংস ⚙️</button>
@@ -143,7 +144,7 @@
 </div>
 
 <div id="display-area" onmousedown="dragTextStart(event)" ontouchstart="dragTextStart(event)">
-    <div id="scrolling-text">এখানে আপনার স্ক্রিপ্ট দেখা যাবে...</div>
+    <div id="scrolling-text">এখানে আপনার স্ক্রিপ্ট লিখুন...</div>
 </div>
 
 <script>
@@ -158,28 +159,38 @@
     const menu = document.getElementById('dropdown-menu');
     const timerDisplay = document.getElementById('timer');
 
-    // ১. টেক্সট আপডেট ও সাইজ
+    // ১. রিফ্রেশ ও স্ক্রলিং
     function updateLiveText() {
         let text = document.getElementById('inputText').value;
-        scrollText.innerText = text ? text : "এখানে আপনার স্ক্রিপ্ট দেখা যাবে...";
-        if(!isAutoScrolling) { currentY = 100; scrollText.style.top = currentY + "px"; }
+        scrollText.innerText = text ? text : "এখানে আপনার স্ক্রিপ্ট লিখুন...";
+        if(!isAutoScrolling) { 
+            currentY = 100; 
+            scrollText.style.top = currentY + "px"; 
+        }
     }
-    function resizeText(v) { scrollText.style.fontSize = v + "px"; }
 
-    function startScroll() {
+    function refreshAndStartScroll() {
         if(!document.getElementById('inputText').value) return alert("আগে স্ক্রিপ্ট লিখুন!");
+        
+        // রিফ্রেশ লজিক: টেক্সটকে একদম নিচ থেকে শুরু করবে
+        currentY = displayArea.offsetHeight; 
+        scrollText.style.top = currentY + "px";
+        
         isAutoScrolling = true;
         if(scrollInterval) clearInterval(scrollInterval);
+        
         scrollInterval = setInterval(() => {
             if(isAutoScrolling) {
                 currentY -= parseFloat(document.getElementById('speedRange').value);
                 scrollText.style.top = currentY + "px";
-                if(currentY < -scrollText.offsetHeight) currentY = displayArea.offsetHeight;
+                if(currentY < -scrollText.offsetHeight) {
+                    currentY = displayArea.offsetHeight;
+                }
             }
         }, 25);
     }
 
-    // ২. ড্র্যাগিং লজিক (ফিক্সড)
+    // ২. ড্র্যাগিং লজিক (ক্যামেরা ও টেক্সট)
     function dragCamStart(e) {
         let ev = e.touches ? e.touches[0] : e;
         let startX = ev.clientX - videoCont.offsetLeft;
@@ -196,12 +207,12 @@
     }
 
     function dragTextStart(e) {
-        isAutoScrolling = false;
+        isAutoScrolling = false; // হাত দিয়ে নাড়ালে অটো স্ক্রল পজ হবে
         let ev = e.touches ? e.touches[0] : e;
-        let startY = ev.clientY - currentY;
+        let sY = ev.clientY - currentY;
         function move(e) {
             let ev2 = e.touches ? e.touches[0] : e;
-            currentY = ev2.clientY - startY;
+            currentY = ev2.clientY - sY;
             scrollText.style.top = currentY + "px";
         }
         function stop() { document.removeEventListener('mousemove', move); document.removeEventListener('touchmove', move); }
@@ -209,12 +220,13 @@
         document.addEventListener('mouseup', stop); document.addEventListener('touchend', stop);
     }
 
-    // ৩. সেটিংস ও রেকর্ড
+    // ৩. রেকর্ড ও সেটিংস
     function toggleSettings() { menu.style.display = (menu.style.display === "block") ? "none" : "block"; }
     function closeAllMenus() { 
         menu.style.display = "none"; 
         if(!isMenuOpen) document.querySelectorAll('.sub-rec-btn').forEach(b => b.style.display = 'none');
     }
+    function resizeText(v) { scrollText.style.fontSize = v + "px"; }
     function changeShape(s) { videoCont.style.borderRadius = s; }
     function resizeCam(v) { videoCont.style.width = v+"px"; videoCont.style.height = v+"px"; }
     function setBeauty(m) {
