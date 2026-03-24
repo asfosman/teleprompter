@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI প্রো টেলিপম্পটার V20</title>
+    <title>AI প্রো টেলিপম্পটার V20 - ডুয়াল রেকর্ড</title>
     <style>
         body {
             margin: 0; background-color: #000; color: #fff;
@@ -48,12 +48,12 @@
         video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); pointer-events: none; }
 
         /* ডিসপ্লে এরিয়া ও টেক্সট */
-        #display-area { flex-grow: 1; position: relative; overflow: hidden; background: #000; }
+        #display-area { flex-grow: 1; position: relative; overflow: hidden; background: #000; cursor: grab; }
         #scrolling-text {
             position: absolute; left: 50%; transform: translateX(-50%);
             width: 92%; text-align: center; font-size: 30px; font-weight: bold;
             line-height: 1.6; pointer-events: none; user-select: none; white-space: pre-wrap;
-            top: 100px; /* Initial static position */
+            top: 100px;
         }
 
         /* রেকর্ড মেনু */
@@ -75,6 +75,14 @@
             border: 3px solid white; display: flex; align-items: center; justify-content: center;
             cursor: pointer; box-shadow: 0 0 15px rgba(255,0,0,0.4);
         }
+        .recording-animation {
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.95); }
+            100% { opacity: 1; transform: scale(1); }
+        }
 
         /* বাটন স্টাইল */
         button { padding: 10px 15px; cursor: pointer; border-radius: 20px; border: none; font-weight: bold; font-size: 13px; color: white; }
@@ -84,8 +92,6 @@
         .btn-inner { background: #444; flex: 1; }
         .active-btn { background: #f39c12 !important; }
         input[type="range"] { width: 100%; accent-color: #007bff; }
-        
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
     </style>
 </head>
 <body onclick="closeAllMenus()">
@@ -114,11 +120,11 @@
                 </div>
                 <div class="setting-item">
                     <span class="setting-label">টেক্সট সাইজ</span>
-                    <input type="range" min="15" max="100" value="30" oninput="resizeText(this.value)">
+                    <input type="range" id="textSizeRange" min="15" max="100" value="30" oninput="resizeText(this.value)">
                 </div>
                 <div class="setting-item">
                     <span class="setting-label">ক্যামেরা সাইজ</span>
-                    <input type="range" min="80" max="600" value="150" oninput="resizeCam(this.value)">
+                    <input type="range" id="camSizeRange" min="80" max="600" value="150" oninput="resizeCam(this.value)">
                 </div>
                 <div class="setting-item">
                     <span class="setting-label">স্ক্রলিং গতি</span>
@@ -138,9 +144,9 @@
     <div id="main-rec-btn" onclick="toggleRecMenu()">
         <div style="width:15px; height:15px; background:white; border-radius:50%;"></div>
     </div>
-    <div id="start-btn" class="sub-rec-btn" style="background:#007bff;" onclick="startDualRec()">⏺️</div>
-    <div id="pause-btn" class="sub-rec-btn" style="background:#e67e22;" onclick="pauseDualRec()">⏸️</div>
-    <div id="save-btn" class="sub-rec-btn" style="background:#28a745;" onclick="stopAndSaveDual()">💾</div>
+    <div id="start-btn" class="sub-rec-btn" style="background:#007bff;" onclick="startRecording()">⏺️</div>
+    <div id="pause-btn" class="sub-rec-btn" style="background:#e67e22;" onclick="pauseRecording()">⏸️</div>
+    <div id="save-btn" class="sub-rec-btn" style="background:#28a745;" onclick="stopRecording()">💾</div>
 </div>
 
 <div id="display-area" onmousedown="dragTextStart(event)" ontouchstart="dragTextStart(event)">
@@ -149,8 +155,14 @@
 
 <script>
     let scrollInterval, isAutoScrolling = false, currentY = 100;
-    let camRecorder, textRecorder, camChunks = [], textChunks = [];
     let isMenuOpen = false, startTime, timerInterval;
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let isRecording = false;
+    let canvasElement = null;
+    let canvasStream = null;
+    let canvasAnimationId = null;
+    let mediaStream = null;
 
     const scrollText = document.getElementById('scrolling-text');
     const videoElem = document.getElementById('webcam');
@@ -158,8 +170,9 @@
     const displayArea = document.getElementById('display-area');
     const menu = document.getElementById('dropdown-menu');
     const timerDisplay = document.getElementById('timer');
+    const mainRecBtn = document.getElementById('main-rec-btn');
 
-    // ১. রিফ্রেশ ও স্ক্রলিং
+    // ১. টেক্সট আপডেট ও স্ক্রলিং
     function updateLiveText() {
         let text = document.getElementById('inputText').value;
         scrollText.innerText = text ? text : "এখানে আপনার স্ক্রিপ্ট লিখুন...";
@@ -172,7 +185,6 @@
     function refreshAndStartScroll() {
         if(!document.getElementById('inputText').value) return alert("আগে স্ক্রিপ্ট লিখুন!");
         
-        // রিফ্রেশ লজিক: টেক্সটকে একদম নিচ থেকে শুরু করবে
         currentY = displayArea.offsetHeight; 
         scrollText.style.top = currentY + "px";
         
@@ -190,7 +202,7 @@
         }, 25);
     }
 
-    // ২. ড্র্যাগিং লজিক (ক্যামেরা ও টেক্সট)
+    // ২. ড্র্যাগিং লজিক
     function dragCamStart(e) {
         let ev = e.touches ? e.touches[0] : e;
         let startX = ev.clientX - videoCont.offsetLeft;
@@ -207,7 +219,7 @@
     }
 
     function dragTextStart(e) {
-        isAutoScrolling = false; // হাত দিয়ে নাড়ালে অটো স্ক্রল পজ হবে
+        isAutoScrolling = false;
         let ev = e.touches ? e.touches[0] : e;
         let sY = ev.clientY - currentY;
         function move(e) {
@@ -220,7 +232,7 @@
         document.addEventListener('mouseup', stop); document.addEventListener('touchend', stop);
     }
 
-    // ৩. রেকর্ড ও সেটিংস
+    // ৩. সেটিংস ফাংশন
     function toggleSettings() { menu.style.display = (menu.style.display === "block") ? "none" : "block"; }
     function closeAllMenus() { 
         menu.style.display = "none"; 
@@ -240,53 +252,183 @@
         document.querySelectorAll('.sub-rec-btn').forEach(b => b.style.display = isMenuOpen ? 'flex' : 'none');
     }
 
-    async function startDualRec() {
-        if (!videoElem.srcObject) return alert("ক্যামেরা অন করুন!");
-        camChunks = []; textChunks = [];
-        camRecorder = new MediaRecorder(videoElem.srcObject);
-        camRecorder.ondataavailable = e => camChunks.push(e.data);
-        let textStream = displayArea.captureStream(30);
-        textRecorder = new MediaRecorder(textStream);
-        textRecorder.ondataavailable = e => textChunks.push(e.data);
-        camRecorder.start(); textRecorder.start();
-        startTime = Date.now();
-        timerDisplay.style.display = 'block';
-        timerInterval = setInterval(() => {
-            let d = Date.now() - startTime;
-            let h = Math.floor(d/3600000), m = Math.floor((d%3600000)/60000), s = Math.floor((d%60000)/1000);
-            timerDisplay.innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-        }, 1000);
-        document.getElementById('main-rec-btn').style.animation = "blink 1s infinite";
-    }
-
-    function stopAndSaveDual() {
-        if(!camRecorder) return;
-        camRecorder.stop(); textRecorder.stop();
-        clearInterval(timerInterval);
-        timerDisplay.style.display = 'none';
-        camRecorder.onstop = () => {
-            save(camChunks, 'camera.webm'); save(textChunks, 'text.webm');
-            document.getElementById('main-rec-btn').style.animation = "none";
-        };
-    }
-
-    function save(c, n) {
-        const b = new Blob(c, {type:'video/webm'});
-        const u = URL.createObjectURL(b);
-        const a = document.createElement('a'); a.href = u; a.download = n; a.click();
-    }
-
+    // ৪. ক্যামেরা টগল
     async function toggleCamera() {
         if(videoCont.style.display === "block") {
             videoCont.style.display = "none";
-            videoElem.srcObject.getTracks().forEach(t => t.stop());
+            if(mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                mediaStream = null;
+            }
         } else {
             videoCont.style.display = "block";
-            const s = await navigator.mediaDevices.getUserMedia({video:{facingMode:"user", width:1280}});
-            videoElem.srcObject = s;
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: "user", width: 1280}, audio: true});
+                mediaStream = stream;
+                videoElem.srcObject = stream;
+            } catch(err) {
+                console.error("Camera error:", err);
+                alert("ক্যামেরা অ্যাক্সেস প্রয়োজন!");
+            }
         }
+    }
+
+    // ৫. রেকর্ডিং ফাংশন (ক্যামেরা + স্ক্রল টেক্সট একসাথে)
+    async function startRecording() {
+        if(isRecording) return;
+        if(!mediaStream) {
+            alert("দয়া করে ক্যামেরা অন করুন!");
+            return;
+        }
+        
+        recordedChunks = [];
+        
+        // ক্যানভাস তৈরি
+        if(!canvasElement) {
+            canvasElement = document.createElement('canvas');
+            canvasElement.style.position = 'fixed';
+            canvasElement.style.top = '-1000px';
+            canvasElement.style.left = '-1000px';
+            document.body.appendChild(canvasElement);
+        }
+        
+        const cameraArea = document.getElementById('display-area');
+        const rect = cameraArea.getBoundingClientRect();
+        canvasElement.width = rect.width;
+        canvasElement.height = rect.height;
+        const ctx = canvasElement.getContext('2d');
+        
+        function drawFrame() {
+            if(!canvasElement) return;
+            const newRect = cameraArea.getBoundingClientRect();
+            if(canvasElement.width !== newRect.width || canvasElement.height !== newRect.height) {
+                canvasElement.width = newRect.width;
+                canvasElement.height = newRect.height;
+            }
+            ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+            
+            // ক্যামেরা ড্র
+            if(videoElem.videoWidth && videoElem.videoHeight && videoCont.style.display === "block") {
+                const camRect = videoCont.getBoundingClientRect();
+                const relX = camRect.left - newRect.left;
+                const relY = camRect.top - newRect.top;
+                ctx.drawImage(videoElem, relX, relY, camRect.width, camRect.height);
+            }
+            
+            // টেক্সট ড্র
+            const textDiv = scrollText;
+            const textRect = textDiv.getBoundingClientRect();
+            const textX = textRect.left - newRect.left;
+            const textY = textRect.top - newRect.top;
+            ctx.font = window.getComputedStyle(textDiv).fontSize + " " + window.getComputedStyle(textDiv).fontFamily;
+            ctx.fillStyle = window.getComputedStyle(textDiv).color;
+            ctx.shadowBlur = 2;
+            ctx.shadowColor = "black";
+            
+            const lines = textDiv.innerText.split('\n');
+            let lineHeight = parseInt(window.getComputedStyle(textDiv).fontSize) * 1.3;
+            for(let i = 0; i < lines.length; i++) {
+                ctx.fillText(lines[i], textX + 20, textY + (i * lineHeight) + 25);
+            }
+            
+            // টাইমার ড্র
+            ctx.font = "bold 24px monospace";
+            ctx.fillStyle = "#ff3333";
+            ctx.fillText(timerDisplay.innerText, newRect.width - 100, 40);
+            
+            canvasAnimationId = requestAnimationFrame(drawFrame);
+        }
+        
+        if(canvasAnimationId) cancelAnimationFrame(canvasAnimationId);
+        drawFrame();
+        
+        canvasStream = canvasElement.captureStream(30);
+        
+        // অডিও যোগ
+        const audioTracks = mediaStream.getAudioTracks();
+        let finalStream = canvasStream;
+        if(audioTracks.length > 0) {
+            const audioStream = new MediaStream(audioTracks);
+            finalStream = new MediaStream([...canvasStream.getVideoTracks(), ...audioStream.getAudioTracks()]);
+        }
+        
+        mediaRecorder = new MediaRecorder(finalStream, { mimeType: 'video/webm' });
+        mediaRecorder.ondataavailable = (event) => {
+            if(event.data.size > 0) recordedChunks.push(event.data);
+        };
+        mediaRecorder.onstop = () => {
+            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `teleprompter_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.webm`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            alert("✅ ভিডিও সেভ হয়েছে!");
+            recordedChunks = [];
+        };
+        
+        mediaRecorder.start();
+        isRecording = true;
+        startTime = Date.now();
+        timerDisplay.style.display = 'block';
+        timerInterval = setInterval(() => {
+            let elapsed = Date.now() - startTime;
+            let hours = Math.floor(elapsed / 3600000);
+            let minutes = Math.floor((elapsed % 3600000) / 60000);
+            let seconds = Math.floor((elapsed % 60000) / 1000);
+            timerDisplay.innerText = `${hours.toString().padStart(2,'0')}:${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
+        }, 1000);
+        
+        mainRecBtn.classList.add('recording-animation');
+        alert("🔴 রেকর্ডিং শুরু হয়েছে!");
+    }
+    
+    function pauseRecording() {
+        if(!isRecording || !mediaRecorder) return;
+        if(mediaRecorder.state === "recording") {
+            mediaRecorder.pause();
+            clearInterval(timerInterval);
+            isRecording = false;
+            mainRecBtn.classList.remove('recording-animation');
+            alert("⏸️ রেকর্ডিং পaused");
+        } else if(mediaRecorder.state === "paused") {
+            mediaRecorder.resume();
+            startTime = Date.now() - (Date.now() - startTime);
+            timerInterval = setInterval(() => {
+                let elapsed = Date.now() - startTime;
+                let hours = Math.floor(elapsed / 3600000);
+                let minutes = Math.floor((elapsed % 3600000) / 60000);
+                let seconds = Math.floor((elapsed % 60000) / 1000);
+                timerDisplay.innerText = `${hours.toString().padStart(2,'0')}:${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
+            }, 1000);
+            isRecording = true;
+            mainRecBtn.classList.add('recording-animation');
+            alert("▶️ রেকর্ডিং resumed");
+        }
+    }
+    
+    function stopRecording() {
+        if(!mediaRecorder) return;
+        if(mediaRecorder.state === "recording" || mediaRecorder.state === "paused") {
+            mediaRecorder.stop();
+        }
+        if(canvasAnimationId) {
+            cancelAnimationFrame(canvasAnimationId);
+            canvasAnimationId = null;
+        }
+        if(canvasStream) {
+            canvasStream.getTracks().forEach(track => track.stop());
+        }
+        clearInterval(timerInterval);
+        timerDisplay.style.display = 'none';
+        isRecording = false;
+        mainRecBtn.classList.remove('recording-animation');
+        alert("💾 ভিডিও সংরক্ষণ করা হচ্ছে...");
     }
 </script>
 
 </body>
-</html>
+    </html>
