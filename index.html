@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI প্রো টেলিপম্পটার V18</title>
+    <title>AI প্রো টেলিপম্পটার V19</title>
     <style>
         body {
             margin: 0; background-color: #000; color: #fff;
@@ -48,7 +48,7 @@
         video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); pointer-events: none; }
 
         /* ডিসপ্লে এরিয়া ও টেক্সট */
-        #display-area { flex-grow: 1; position: relative; overflow: hidden; background: #000; cursor: grab; }
+        #display-area { flex-grow: 1; position: relative; overflow: hidden; background: #000; }
         #scrolling-text {
             position: absolute; left: 50%; transform: translateX(-50%);
             width: 92%; text-align: center; font-size: 30px; font-weight: bold;
@@ -56,7 +56,7 @@
             top: 100px;
         }
 
-        /* রেকর্ড মেনু */
+        /* রেকর্ড মেনু ও টাইমার */
         .rec-container {
             position: fixed; bottom: 30px; right: 30px;
             display: flex; flex-direction: row-reverse; align-items: center; gap: 12px; z-index: 5000;
@@ -112,6 +112,10 @@
                     </div>
                 </div>
                 <div class="setting-item">
+                    <span class="setting-label">টেক্সট সাইজ</span>
+                    <input type="range" min="15" max="100" value="30" oninput="resizeText(this.value)">
+                </div>
+                <div class="setting-item">
                     <span class="setting-label">ক্যামেরা সাইজ</span>
                     <input type="range" min="80" max="600" value="150" oninput="resizeCam(this.value)">
                 </div>
@@ -154,36 +158,28 @@
     const menu = document.getElementById('dropdown-menu');
     const timerDisplay = document.getElementById('timer');
 
-    // ১. টেক্সট আপডেট ও স্ক্রল লজিক
+    // ১. টেক্সট আপডেট ও সাইজ
     function updateLiveText() {
         let text = document.getElementById('inputText').value;
         scrollText.innerText = text ? text : "এখানে আপনার স্ক্রিপ্ট দেখা যাবে...";
-        if(!isAutoScrolling) {
-            currentY = 100;
-            scrollText.style.top = currentY + "px";
-        }
+        if(!isAutoScrolling) { currentY = 100; scrollText.style.top = currentY + "px"; }
     }
+    function resizeText(v) { scrollText.style.fontSize = v + "px"; }
 
     function startScroll() {
         if(!document.getElementById('inputText').value) return alert("আগে স্ক্রিপ্ট লিখুন!");
-        
         isAutoScrolling = true;
         if(scrollInterval) clearInterval(scrollInterval);
-        
         scrollInterval = setInterval(() => {
             if(isAutoScrolling) {
                 currentY -= parseFloat(document.getElementById('speedRange').value);
                 scrollText.style.top = currentY + "px";
-                
-                // স্ক্রিন থেকে পুরোপুরি উপরে চলে গেলে আবার নিচে আসবে
-                if(currentY < -scrollText.offsetHeight) {
-                    currentY = displayArea.offsetHeight;
-                }
+                if(currentY < -scrollText.offsetHeight) currentY = displayArea.offsetHeight;
             }
         }, 25);
     }
 
-    // ২. ড্র্যাগিং (ক্যামেরা ও টেক্সট)
+    // ২. ড্র্যাগিং লজিক (ফিক্সড)
     function dragCamStart(e) {
         let ev = e.touches ? e.touches[0] : e;
         let startX = ev.clientX - videoCont.offsetLeft;
@@ -200,7 +196,7 @@
     }
 
     function dragTextStart(e) {
-        isAutoScrolling = false; // হাত দিয়ে নাড়ালে অটো স্ক্রল বন্ধ
+        isAutoScrolling = false;
         let ev = e.touches ? e.touches[0] : e;
         let startY = ev.clientY - currentY;
         function move(e) {
@@ -213,7 +209,20 @@
         document.addEventListener('mouseup', stop); document.addEventListener('touchend', stop);
     }
 
-    // ৩. রেকর্ড ও সেটিংস
+    // ৩. সেটিংস ও রেকর্ড
+    function toggleSettings() { menu.style.display = (menu.style.display === "block") ? "none" : "block"; }
+    function closeAllMenus() { 
+        menu.style.display = "none"; 
+        if(!isMenuOpen) document.querySelectorAll('.sub-rec-btn').forEach(b => b.style.display = 'none');
+    }
+    function changeShape(s) { videoCont.style.borderRadius = s; }
+    function resizeCam(v) { videoCont.style.width = v+"px"; videoCont.style.height = v+"px"; }
+    function setBeauty(m) {
+        videoElem.style.filter = (m==='on') ? "brightness(1.2) contrast(1.1) blur(0.4px)" : "none";
+        document.getElementById('bOn').classList.toggle('active-btn', m==='on');
+        document.getElementById('bOff').classList.toggle('active-btn', m==='off');
+    }
+
     function toggleRecMenu() {
         isMenuOpen = !isMenuOpen;
         document.querySelectorAll('.sub-rec-btn').forEach(b => b.style.display = isMenuOpen ? 'flex' : 'none');
@@ -224,11 +233,9 @@
         camChunks = []; textChunks = [];
         camRecorder = new MediaRecorder(videoElem.srcObject);
         camRecorder.ondataavailable = e => camChunks.push(e.data);
-        
         let textStream = displayArea.captureStream(30);
         textRecorder = new MediaRecorder(textStream);
         textRecorder.ondataavailable = e => textChunks.push(e.data);
-
         camRecorder.start(); textRecorder.start();
         startTime = Date.now();
         timerDisplay.style.display = 'block';
@@ -246,8 +253,7 @@
         clearInterval(timerInterval);
         timerDisplay.style.display = 'none';
         camRecorder.onstop = () => {
-            save(camChunks, 'camera_recording.webm');
-            save(textChunks, 'text_recording.webm');
+            save(camChunks, 'camera.webm'); save(textChunks, 'text.webm');
             document.getElementById('main-rec-btn').style.animation = "none";
         };
     }
@@ -268,20 +274,7 @@
             videoElem.srcObject = s;
         }
     }
-
-    function toggleSettings() { menu.style.display = (menu.style.display === "block") ? "none" : "block"; }
-    function closeAllMenus() { 
-        menu.style.display = "none"; 
-        if(!isMenuOpen) document.querySelectorAll('.sub-rec-btn').forEach(b => b.style.display = 'none');
-    }
-    function changeShape(s) { videoCont.style.borderRadius = s; }
-    function resizeCam(v) { videoCont.style.width = v+"px"; videoCont.style.height = v+"px"; }
-    function setBeauty(m) {
-        videoElem.style.filter = (m==='on') ? "brightness(1.2) contrast(1.1) blur(0.4px)" : "none";
-        document.getElementById('bOn').classList.toggle('active-btn', m==='on');
-        document.getElementById('bOff').classList.toggle('active-btn', m==='off');
-    }
 </script>
 
 </body>
-</html>
+    </html>
