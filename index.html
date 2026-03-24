@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI প্রো টেলিপম্পটার V28 - প্রো রেকর্ড</title>
+    <title>AI প্রো টেলিপম্পটার V29 - প্রো রেকর্ড</title>
     <style>
         * {
             user-select: none;
@@ -87,7 +87,7 @@
             top: 100px;
         }
 
-        /* ছোট রেকর্ড বাটন */
+        /* রেকর্ড বাটন */
         .rec-container {
             position: fixed; bottom: 15px; right: 15px;
             display: flex; flex-direction: row-reverse; align-items: center; gap: 8px; z-index: 5000;
@@ -97,27 +97,20 @@
             font-family: monospace; font-size: 16px; font-weight: bold; display: none;
             background: rgba(0,0,0,0.7); padding: 3px 8px; border-radius: 6px;
         }
-        .sub-rec-btn {
-            width: 38px; height: 38px; border-radius: 50%; border: 2px solid white;
-            display: none; align-items: center; justify-content: center; cursor: pointer;
-            font-size: 16px;
-            transition: transform 0.1s;
-        }
-        .sub-rec-btn:active { transform: scale(0.92); }
-        #main-rec-btn {
-            width: 48px; height: 48px; background: red; border-radius: 50%;
-            border: 2px solid white; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; box-shadow: 0 0 12px rgba(255,0,0,0.4);
+        .rec-btn {
+            width: 48px; height: 48px; border-radius: 50%; border: 2px solid white;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
             font-size: 20px;
             transition: transform 0.1s;
         }
-        #main-rec-btn:active { transform: scale(0.94); }
+        .rec-btn:active { transform: scale(0.94); }
         .recording-active { animation: blink 1s infinite; }
         @keyframes blink {
             0% { opacity: 1; transform: scale(1); }
             50% { opacity: 0.7; transform: scale(0.95); }
             100% { opacity: 1; transform: scale(1); }
         }
+        .paused-state { background: #f39c12 !important; }
 
         button { padding: 6px 10px; cursor: pointer; border-radius: 18px; border: none; font-weight: bold; font-size: 11px; color: white; }
         .btn-blue { background: #007bff; }
@@ -146,6 +139,22 @@
             padding: 5px;
             font-size: 11px;
             border-radius: 18px;
+        }
+        
+        .record-options {
+            display: flex;
+            gap: 8px;
+            margin-top: 5px;
+        }
+        .option-btn {
+            background: #333;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            cursor: pointer;
+        }
+        .option-active {
+            background: #dc3545;
         }
     </style>
 </head>
@@ -199,6 +208,10 @@
             </div>
         </div>
     </div>
+    <div class="record-options">
+        <div id="camRecordBtn" class="option-btn" onclick="toggleCameraRecording()">📹 ক্যামেরা</div>
+        <div id="textRecordBtn" class="option-btn" onclick="toggleTextRecording()">📝 টেক্সট</div>
+    </div>
 </div>
 
 <div id="video-container">
@@ -208,18 +221,14 @@
 
 <div class="rec-container" onclick="event.stopPropagation()">
     <div id="timer">00:00:00</div>
-    <div id="main-rec-btn" onclick="toggleRecMenu()">⏺️</div>
-    <div id="start-cam-btn" class="sub-rec-btn" style="background:#dc3545;" onclick="startCameraRecord()">📹</div>
-    <div id="start-text-btn" class="sub-rec-btn" style="background:#28a745;" onclick="startTextRecord()">📝</div>
-    <div id="pause-btn" class="sub-rec-btn" style="background:#e67e22;" onclick="togglePauseRecording()">⏸️</div>
-    <div id="save-btn" class="sub-rec-btn" style="background:#007bff;" onclick="stopRecording()">💾</div>
+    <div id="saveBtn" class="rec-btn" style="background:#007bff;" onclick="stopRecording()">💾</div>
 </div>
 
 <div id="display-area" onmousedown="dragTextStart(event)" ontouchstart="dragTextStart(event)">
     <div id="scrolling-text">এখানে আপনার স্ক্রিপ্ট লিখুন...</div>
 </div>
 
-<div class="status-msg" id="statusMsg">✅ প্রস্তুত | MP4 ফরম্যাট</div>
+<div class="status-msg" id="statusMsg">✅ প্রস্তুত | MP4 | উচ্চ মানের অডিও</div>
 
 <script>
     const scrollText = document.getElementById('scrolling-text');
@@ -228,8 +237,9 @@
     const displayArea = document.getElementById('display-area');
     const menu = document.getElementById('dropdown-menu');
     const timerDisplay = document.getElementById('timer');
-    const mainRecBtn = document.getElementById('main-rec-btn');
-    const pauseBtn = document.getElementById('pause-btn');
+    const saveBtn = document.getElementById('saveBtn');
+    const camRecordBtn = document.getElementById('camRecordBtn');
+    const textRecordBtn = document.getElementById('textRecordBtn');
     const speedRange = document.getElementById('speedRange');
     const statusMsg = document.getElementById('statusMsg');
 
@@ -239,29 +249,47 @@
     let currentFacingMode = 'user';
     let currentResolution = 'fullhd';
     
+    // রেকর্ডিং স্টেট
     let cameraRecorder = null;
     let cameraChunks = [];
     let isCameraRecording = false;
+    let isCameraPaused = false;
     
     let textRecorder = null;
     let textChunks = [];
     let isTextRecording = false;
+    let isTextPaused = false;
     let textStream = null;
     let textCanvas = null;
     let textAnimationId = null;
     
     // টাইমার ভেরিয়েবল
-    let recordingStartTime = 0;
-    let totalPausedDuration = 0;  // মোট পজ করা সময়
-    let currentPauseStart = 0;     // বর্তমান পজ শুরু সময়
-    let isPaused = false;
+    let cameraStartTime = 0;
+    let textStartTime = 0;
+    let cameraPausedDuration = 0;
+    let textPausedDuration = 0;
+    let cameraCurrentPauseStart = 0;
+    let textCurrentPauseStart = 0;
     let timerInterval = null;
     let activeRecordings = 0;
 
+    // বেস্ট অডিও কোয়ালিটির জন্য কনফিগারেশন
+    function getAudioConstraints() {
+        return {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+            sampleRate: 48000,
+            sampleSize: 16,
+            channelCount: 2
+        };
+    }
+
     function getMimeType() {
         const mimeTypes = [
-            'video/mp4',
             'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
+            'video/mp4',
+            'video/webm;codecs=vp9,opus',
             'video/webm'
         ];
         for (let mime of mimeTypes) {
@@ -273,13 +301,18 @@
     }
 
     function getVideoConstraints() {
-        const constraints = { video: { facingMode: { exact: currentFacingMode } }, audio: true };
+        const constraints = { 
+            video: { facingMode: { exact: currentFacingMode } }, 
+            audio: getAudioConstraints()
+        };
         if(currentResolution === 'fullhd') {
             constraints.video.width = { ideal: 1920 };
             constraints.video.height = { ideal: 1080 };
+            constraints.video.frameRate = { ideal: 30 };
         } else {
             constraints.video.width = { ideal: 1280 };
             constraints.video.height = { ideal: 720 };
+            constraints.video.frameRate = { ideal: 30 };
         }
         return constraints;
     }
@@ -290,12 +323,12 @@
         btns.forEach(btn => btn.classList.remove('active-btn'));
         if(type === 'hd') {
             btns[0].classList.add('active-btn');
-            statusMsg.innerText = "HD (720p) | MP4";
+            statusMsg.innerText = "HD (720p) | উচ্চ মানের অডিও";
         } else {
             btns[1].classList.add('active-btn');
-            statusMsg.innerText = "Full HD (1080p) | MP4";
+            statusMsg.innerText = "Full HD (1080p) | উচ্চ মানের অডিও";
         }
-        setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 ফরম্যাট", 1500);
+        setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 | উচ্চ মানের অডিও", 1500);
         if(mediaStream) {
             const wasOn = videoCont.style.display === "block";
             if(wasOn) { toggleCamera(); setTimeout(() => toggleCamera(), 500); }
@@ -353,8 +386,8 @@
             videoElem.srcObject = stream;
             videoElem.style.transform = currentFacingMode === 'user' ? "scaleX(-1)" : "scaleX(1)";
             const camName = currentFacingMode === 'user' ? 'সামনের' : 'পিছনের';
-            statusMsg.innerText = `✅ ${camName} ক্যামেরা | MP4`;
-            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 ফরম্যাট", 1500);
+            statusMsg.innerText = `✅ ${camName} ক্যামেরা | উচ্চ মানের অডিও`;
+            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 | উচ্চ মানের অডিও", 1500);
         } catch(err) { alert("ক্যামেরা পরিবর্তন করা যায়নি!"); }
     }
 
@@ -408,17 +441,13 @@
         document.getElementById('bOn').classList.toggle('active-btn', m==='on');
         document.getElementById('bOff').classList.toggle('active-btn', m==='off');
     }
-    function toggleRecMenu() {
-        isMenuOpen = !isMenuOpen;
-        document.querySelectorAll('.sub-rec-btn').forEach(b => b.style.display = isMenuOpen ? 'flex' : 'none');
-    }
 
     async function toggleCamera() {
         if(videoCont.style.display === "block") {
             videoCont.style.display = "none";
             if(mediaStream) { mediaStream.getTracks().forEach(track => track.stop()); mediaStream = null; }
             statusMsg.innerText = "✅ ক্যামেরা বন্ধ";
-            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 ফরম্যাট", 1500);
+            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 | উচ্চ মানের অডিও", 1500);
         } else {
             videoCont.style.display = "block";
             try {
@@ -428,28 +457,33 @@
                 videoElem.srcObject = stream;
                 videoElem.style.transform = currentFacingMode === 'user' ? "scaleX(-1)" : "scaleX(1)";
                 setTimeout(() => makeDraggable(videoCont), 100);
-                statusMsg.innerText = "✅ ক্যামেরা চালু | MP4";
-                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 ফরম্যাট", 1500);
+                statusMsg.innerText = "✅ ক্যামেরা চালু | উচ্চ মানের অডিও";
+                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 | উচ্চ মানের অডিও", 1500);
             } catch(err) { alert("ক্যামেরা অ্যাক্সেস প্রয়োজন!"); videoCont.style.display = "none"; }
         }
     }
 
-    // টাইমার আপডেট - পজ সময় বাদ দিয়ে
-    function getActualElapsedTime() {
-        if (recordingStartTime === 0) return 0;
-        let elapsed = Date.now() - recordingStartTime - totalPausedDuration;
-        return Math.max(0, elapsed);
-    }
-
+    // টাইমার আপডেট
     function updateTimerDisplay() {
         if(activeRecordings === 0) {
             timerDisplay.style.display = 'none';
             return;
         }
-        const elapsed = getActualElapsedTime();
-        const h = Math.floor(elapsed / 3600000);
-        const m = Math.floor((elapsed % 3600000) / 60000);
-        const s = Math.floor((elapsed % 60000) / 1000);
+        
+        let currentTime = 0;
+        if(isCameraRecording && !isCameraPaused) {
+            currentTime = Date.now() - cameraStartTime - cameraPausedDuration;
+        } else if(isTextRecording && !isTextPaused) {
+            currentTime = Date.now() - textStartTime - textPausedDuration;
+        } else if(isCameraRecording && isCameraPaused) {
+            currentTime = cameraStartTime ? (Date.now() - cameraStartTime - cameraPausedDuration) : 0;
+        } else if(isTextRecording && isTextPaused) {
+            currentTime = textStartTime ? (Date.now() - textStartTime - textPausedDuration) : 0;
+        }
+        
+        const h = Math.floor(currentTime / 3600000);
+        const m = Math.floor((currentTime % 3600000) / 60000);
+        const s = Math.floor((currentTime % 60000) / 1000);
         timerDisplay.innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
     }
 
@@ -464,182 +498,185 @@
         if(activeRecordings === 0) timerDisplay.style.display = 'none';
     }
 
-    // ক্যামেরা রেকর্ড (টাইমার রেকর্ডে যাবে না)
-    async function startCameraRecord() {
-        if(!mediaStream) { alert("ক্যামেরা অন করুন!"); return; }
-        if(isCameraRecording) return;
-        cameraChunks = [];
-        const mimeType = getMimeType();
-        cameraRecorder = new MediaRecorder(mediaStream, { mimeType: mimeType });
-        cameraRecorder.ondataavailable = e => { if(e.data.size > 0) cameraChunks.push(e.data); };
-        cameraRecorder.onstop = () => {
-            const blob = new Blob(cameraChunks, { type: 'video/mp4' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            const timestamp = new Date().toISOString().slice(0,19).replace(/:/g, '-');
-            const camType = currentFacingMode === 'user' ? 'front' : 'back';
-            a.download = `camera_${camType}_${timestamp}.mp4`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            statusMsg.innerText = "✅ ক্যামেরা MP4 সেভ হয়েছে";
-            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 ফরম্যাট", 1500);
-            cameraChunks = [];
-            isCameraRecording = false;
-            activeRecordings--;
-            if(activeRecordings === 0) {
-                stopTimer();
-                // রিসেট টাইমার ভেরিয়েবল
-                recordingStartTime = 0;
-                totalPausedDuration = 0;
-                isPaused = false;
-            }
-            updateRecordButtonStatus();
-        };
-        cameraRecorder.start(1000);
-        isCameraRecording = true;
-        activeRecordings++;
-        if(activeRecordings === 1) { 
-            recordingStartTime = Date.now();
-            totalPausedDuration = 0;
-            isPaused = false;
-            startTimer();
-        }
-        updateRecordButtonStatus();
-        statusMsg.innerText = "📹 ক্যামেরা রেকর্ডিং (MP4)";
-        setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 ফরম্যাট", 1500);
-    }
-
-    // টেক্সট রেকর্ড (টাইমার রেকর্ডে যাবে না)
-    async function startTextRecord() {
-        if(isTextRecording) return;
-        textChunks = [];
-        if(!textCanvas) {
-            textCanvas = document.createElement('canvas');
-            textCanvas.style.position = 'fixed';
-            textCanvas.style.top = '-1000px';
-            textCanvas.style.left = '-1000px';
-            document.body.appendChild(textCanvas);
-        }
-        const rect = displayArea.getBoundingClientRect();
-        textCanvas.width = rect.width;
-        textCanvas.height = rect.height;
-        const ctx = textCanvas.getContext('2d');
-        
-        function drawTextFrame() {
-            if(!textCanvas) return;
-            const newRect = displayArea.getBoundingClientRect();
-            if(textCanvas.width !== newRect.width || textCanvas.height !== newRect.height) {
-                textCanvas.width = newRect.width;
-                textCanvas.height = newRect.height;
-            }
-            ctx.clearRect(0, 0, textCanvas.width, textCanvas.height);
-            ctx.fillStyle = "#000";
-            ctx.fillRect(0, 0, textCanvas.width, textCanvas.height);
-            
-            const textDiv = scrollText;
-            const textRect = textDiv.getBoundingClientRect();
-            const textX = textRect.left - newRect.left;
-            const textY = textRect.top - newRect.top;
-            const cs = window.getComputedStyle(textDiv);
-            ctx.font = cs.fontSize + " " + cs.fontFamily;
-            ctx.fillStyle = cs.color;
-            ctx.textAlign = "center";
-            ctx.shadowBlur = 2;
-            const lines = textDiv.innerText.split('\n');
-            let lh = parseInt(cs.fontSize) * 1.3;
-            for(let i = 0; i < lines.length; i++) {
-                ctx.fillText(lines[i], textCanvas.width/2, textY + (i * lh) + parseInt(cs.fontSize));
-            }
-            // টাইমার রেকর্ডে যাবে না - শুধু স্ক্রিনে দেখাবে, ক্যানভাসে ড্র করছি না
-            textAnimationId = requestAnimationFrame(drawTextFrame);
-        }
-        drawTextFrame();
-        
-        textStream = textCanvas.captureStream(30);
-        const mimeType = getMimeType();
-        textRecorder = new MediaRecorder(textStream, { mimeType: mimeType });
-        textRecorder.ondataavailable = e => { if(e.data.size > 0) textChunks.push(e.data); };
-        textRecorder.onstop = () => {
-            if(textAnimationId) cancelAnimationFrame(textAnimationId);
-            const blob = new Blob(textChunks, { type: 'video/mp4' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `text_scroll_${Date.now()}.mp4`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            statusMsg.innerText = "✅ টেক্সট MP4 সেভ হয়েছে";
-            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 ফরম্যাট", 1500);
-            textChunks = [];
-            isTextRecording = false;
-            activeRecordings--;
-            if(activeRecordings === 0) {
-                stopTimer();
-                recordingStartTime = 0;
-                totalPausedDuration = 0;
-                isPaused = false;
-            }
-            updateRecordButtonStatus();
-        };
-        textRecorder.start(1000);
-        isTextRecording = true;
-        activeRecordings++;
-        if(activeRecordings === 1) { 
-            recordingStartTime = Date.now();
-            totalPausedDuration = 0;
-            isPaused = false;
-            startTimer();
-        }
-        updateRecordButtonStatus();
-        statusMsg.innerText = "📝 টেক্সট রেকর্ডিং (MP4)";
-        setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 ফরম্যাট", 1500);
-    }
-    
-    // পজ/রিজিউম - টাইমারও পজ হবে
-    function togglePauseRecording() {
-        if(activeRecordings === 0) {
-            alert("কোনো রেকর্ডিং চলছে না!");
+    // ক্যামেরা রেকর্ড টগল (একই বাটনে শুরু/পজ)
+    async function toggleCameraRecording() {
+        if(!mediaStream) {
+            alert("ক্যামেরা অন করুন!");
             return;
         }
         
-        if(!isPaused) {
-            // পজ করুন
-            if(isCameraRecording && cameraRecorder && cameraRecorder.state === "recording") {
-                cameraRecorder.pause();
-            }
-            if(isTextRecording && textRecorder && textRecorder.state === "recording") {
-                textRecorder.pause();
-            }
-            isPaused = true;
-            currentPauseStart = Date.now();
-            pauseBtn.style.background = "#2ecc71";
-            pauseBtn.innerText = "▶️";
-            statusMsg.innerText = "⏸️ রেকর্ডিং পজ | টাইমার থামানো হয়েছে";
-            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4", 1500);
+        if(!isCameraRecording) {
+            // শুরু করুন
+            cameraChunks = [];
+            const mimeType = getMimeType();
+            cameraRecorder = new MediaRecorder(mediaStream, { mimeType: mimeType });
+            cameraRecorder.ondataavailable = e => { if(e.data.size > 0) cameraChunks.push(e.data); };
+            cameraRecorder.onstop = () => {
+                const blob = new Blob(cameraChunks, { type: 'video/mp4' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                const timestamp = new Date().toISOString().slice(0,19).replace(/:/g, '-');
+                const camType = currentFacingMode === 'user' ? 'front' : 'back';
+                a.download = `camera_${camType}_${timestamp}.mp4`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                statusMsg.innerText = "✅ ক্যামেরা MP4 সেভ হয়েছে";
+                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 | উচ্চ মানের অডিও", 1500);
+                cameraChunks = [];
+                isCameraRecording = false;
+                isCameraPaused = false;
+                activeRecordings--;
+                if(activeRecordings === 0) stopTimer();
+                updateButtonStyles();
+            };
+            cameraRecorder.start(1000);
+            isCameraRecording = true;
+            isCameraPaused = false;
+            cameraStartTime = Date.now();
+            cameraPausedDuration = 0;
+            activeRecordings++;
+            startTimer();
+            camRecordBtn.classList.add('option-active');
+            statusMsg.innerText = "📹 ক্যামেরা রেকর্ডিং চলছে...";
+            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 | উচ্চ মানের অডিও", 1500);
         } else {
-            // রিজিউম করুন
-            if(isCameraRecording && cameraRecorder && cameraRecorder.state === "paused") {
-                cameraRecorder.resume();
+            // পজ/রিজিউম টগল
+            if(!isCameraPaused) {
+                // পজ করুন
+                if(cameraRecorder && cameraRecorder.state === "recording") {
+                    cameraRecorder.pause();
+                }
+                isCameraPaused = true;
+                cameraCurrentPauseStart = Date.now();
+                camRecordBtn.style.background = "#f39c12";
+                statusMsg.innerText = "⏸️ ক্যামেরা পজ | টাইমার থামানো হয়েছে";
+                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 | উচ্চ মানের অডিও", 1500);
+            } else {
+                // রিজিউম করুন
+                if(cameraRecorder && cameraRecorder.state === "paused") {
+                    cameraRecorder.resume();
+                }
+                if(cameraCurrentPauseStart > 0) {
+                    cameraPausedDuration += (Date.now() - cameraCurrentPauseStart);
+                    cameraCurrentPauseStart = 0;
+                }
+                isCameraPaused = false;
+                camRecordBtn.style.background = "#dc3545";
+                statusMsg.innerText = "▶️ ক্যামেরা রিজিউম | টাইমার চলছে";
+                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 | উচ্চ মানের অডিও", 1500);
             }
-            if(isTextRecording && textRecorder && textRecorder.state === "paused") {
-                textRecorder.resume();
-            }
-            // পজের সময় যোগ করুন totalPausedDuration-এ
-            if(currentPauseStart > 0) {
-                totalPausedDuration += (Date.now() - currentPauseStart);
-                currentPauseStart = 0;
-            }
-            isPaused = false;
-            pauseBtn.style.background = "#e67e22";
-            pauseBtn.innerText = "⏸️";
-            statusMsg.innerText = "▶️ রেকর্ডিং রিজিউম | টাইমার চলছে";
-            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4", 1500);
         }
+        updateButtonStyles();
+    }
+
+    // টেক্সট রেকর্ড টগল (একই বাটনে শুরু/পজ)
+    async function toggleTextRecording() {
+        if(!isTextRecording) {
+            textChunks = [];
+            if(!textCanvas) {
+                textCanvas = document.createElement('canvas');
+                textCanvas.style.position = 'fixed';
+                textCanvas.style.top = '-1000px';
+                textCanvas.style.left = '-1000px';
+                document.body.appendChild(textCanvas);
+            }
+            const rect = displayArea.getBoundingClientRect();
+            textCanvas.width = rect.width;
+            textCanvas.height = rect.height;
+            const ctx = textCanvas.getContext('2d');
+            
+            function drawTextFrame() {
+                if(!textCanvas) return;
+                const newRect = displayArea.getBoundingClientRect();
+                if(textCanvas.width !== newRect.width || textCanvas.height !== newRect.height) {
+                    textCanvas.width = newRect.width;
+                    textCanvas.height = newRect.height;
+                }
+                ctx.clearRect(0, 0, textCanvas.width, textCanvas.height);
+                ctx.fillStyle = "#000";
+                ctx.fillRect(0, 0, textCanvas.width, textCanvas.height);
+                
+                const textDiv = scrollText;
+                const textRect = textDiv.getBoundingClientRect();
+                const textX = textRect.left - newRect.left;
+                const textY = textRect.top - newRect.top;
+                const cs = window.getComputedStyle(textDiv);
+                ctx.font = cs.fontSize + " " + cs.fontFamily;
+                ctx.fillStyle = cs.color;
+                ctx.textAlign = "center";
+                ctx.shadowBlur = 2;
+                const lines = textDiv.innerText.split('\n');
+                let lh = parseInt(cs.fontSize) * 1.3;
+                for(let i = 0; i < lines.length; i++) {
+                    ctx.fillText(lines[i], textCanvas.width/2, textY + (i * lh) + parseInt(cs.fontSize));
+                }
+                textAnimationId = requestAnimationFrame(drawTextFrame);
+            }
+            drawTextFrame();
+            
+            textStream = textCanvas.captureStream(30);
+            const mimeType = getMimeType();
+            textRecorder = new MediaRecorder(textStream, { mimeType: mimeType });
+            textRecorder.ondataavailable = e => { if(e.data.size > 0) textChunks.push(e.data); };
+            textRecorder.onstop = () => {
+                if(textAnimationId) cancelAnimationFrame(textAnimationId);
+                const blob = new Blob(textChunks, { type: 'video/mp4' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `text_scroll_${Date.now()}.mp4`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                statusMsg.innerText = "✅ টেক্সট MP4 সেভ হয়েছে";
+                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 | উচ্চ মানের অডিও", 1500);
+                textChunks = [];
+                isTextRecording = false;
+                isTextPaused = false;
+                activeRecordings--;
+                if(activeRecordings === 0) stopTimer();
+                updateButtonStyles();
+            };
+            textRecorder.start(1000);
+            isTextRecording = true;
+            isTextPaused = false;
+            textStartTime = Date.now();
+            textPausedDuration = 0;
+            activeRecordings++;
+            startTimer();
+            textRecordBtn.classList.add('option-active');
+            statusMsg.innerText = "📝 টেক্সট রেকর্ডিং চলছে...";
+            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 | উচ্চ মানের অডিও", 1500);
+        } else {
+            // পজ/রিজিউম টগল
+            if(!isTextPaused) {
+                if(textRecorder && textRecorder.state === "recording") {
+                    textRecorder.pause();
+                }
+                isTextPaused = true;
+                textCurrentPauseStart = Date.now();
+                textRecordBtn.style.background = "#f39c12";
+                statusMsg.innerText = "⏸️ টেক্সট পজ | টাইমার থামানো হয়েছে";
+                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 | উচ্চ মানের অডিও", 1500);
+            } else {
+                if(textRecorder && textRecorder.state === "paused") {
+                    textRecorder.resume();
+                }
+                if(textCurrentPauseStart > 0) {
+                    textPausedDuration += (Date.now() - textCurrentPauseStart);
+                    textCurrentPauseStart = 0;
+                }
+                isTextPaused = false;
+                textRecordBtn.style.background = "#28a745";
+                statusMsg.innerText = "▶️ টেক্সট রিজিউম | টাইমার চলছে";
+                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 | উচ্চ মানের অডিও", 1500);
+            }
+        }
+        updateButtonStyles();
     }
     
     function stopRecording() {
@@ -653,28 +690,27 @@
             stopped = true;
         }
         if(stopped) {
-            // রিসেট পজ স্টেট
-            isPaused = false;
-            currentPauseStart = 0;
-            pauseBtn.style.background = "#e67e22";
-            pauseBtn.innerText = "⏸️";
             statusMsg.innerText = "💾 MP4 সংরক্ষণ করা হচ্ছে...";
         } else {
             alert("কোনো রেকর্ডিং নেই!");
         }
     }
     
-    function updateRecordButtonStatus() {
-        if(activeRecordings > 0) {
-            mainRecBtn.classList.add('recording-active');
-            mainRecBtn.innerText = '🔴';
+    function updateButtonStyles() {
+        if(isCameraRecording) {
+            camRecordBtn.classList.add('option-active');
+            camRecordBtn.style.background = isCameraPaused ? "#f39c12" : "#dc3545";
         } else {
-            mainRecBtn.classList.remove('recording-active');
-            mainRecBtn.innerText = '⏺️';
-            pauseBtn.style.background = "#e67e22";
-            pauseBtn.innerText = "⏸️";
-            isPaused = false;
-            currentPauseStart = 0;
+            camRecordBtn.classList.remove('option-active');
+            camRecordBtn.style.background = "#333";
+        }
+        
+        if(isTextRecording) {
+            textRecordBtn.classList.add('option-active');
+            textRecordBtn.style.background = isTextPaused ? "#f39c12" : "#28a745";
+        } else {
+            textRecordBtn.classList.remove('option-active');
+            textRecordBtn.style.background = "#333";
         }
     }
     
