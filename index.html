@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI প্রো টেলিপম্পটার V27 - MP4 রেকর্ড</title>
+    <title>AI প্রো টেলিপম্পটার V28 - প্রো রেকর্ড</title>
     <style>
         * {
             user-select: none;
@@ -17,29 +17,29 @@
         }
 
         #controls {
-            padding: 10px; background: #1a1a1a; display: flex;
-            flex-direction: column; align-items: center; gap: 8px;
+            padding: 8px; background: #1a1a1a; display: flex;
+            flex-direction: column; align-items: center; gap: 6px;
             z-index: 2000; border-bottom: 2px solid #333;
         }
 
         textarea {
-            width: 90%; max-width: 550px; height: 45px; background: #222;
-            color: #0f0; border: 1px solid #444; padding: 8px; border-radius: 8px;
-            font-size: 13px; outline: none;
+            width: 90%; max-width: 550px; height: 40px; background: #222;
+            color: #0f0; border: 1px solid #444; padding: 6px; border-radius: 8px;
+            font-size: 12px; outline: none;
         }
 
-        .main-buttons { display: flex; gap: 8px; justify-content: center; position: relative; flex-wrap: wrap; }
+        .main-buttons { display: flex; gap: 6px; justify-content: center; position: relative; flex-wrap: wrap; }
 
         #dropdown-menu {
             display: none; position: absolute; background-color: #1e1e1e;
-            width: 260px; box-shadow: 0px 10px 30px rgba(0,0,0,0.9);
-            padding: 12px; z-index: 3000; border-radius: 12px;
-            top: 50px; left: 50%; transform: translateX(-50%); border: 1px solid #444;
+            width: 250px; box-shadow: 0px 10px 30px rgba(0,0,0,0.9);
+            padding: 10px; z-index: 3000; border-radius: 12px;
+            top: 45px; left: 50%; transform: translateX(-50%); border: 1px solid #444;
         }
 
-        .setting-item { margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 8px; }
-        .setting-label { display: block; margin-bottom: 5px; font-size: 12px; color: #bbb; }
-        .btn-group { display: flex; gap: 6px; }
+        .setting-item { margin-bottom: 8px; border-bottom: 1px solid #333; padding-bottom: 6px; }
+        .setting-label { display: block; margin-bottom: 4px; font-size: 11px; color: #bbb; }
+        .btn-group { display: flex; gap: 5px; }
 
         #video-container {
             position: absolute; top: 180px; right: 20px; 
@@ -67,11 +67,11 @@
             top: 3px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 16px;
+            font-size: 14px;
             color: rgba(255,255,255,0.6);
             background: rgba(0,0,0,0.5);
-            padding: 2px 6px;
-            border-radius: 15px;
+            padding: 2px 5px;
+            border-radius: 12px;
             pointer-events: none;
         }
 
@@ -87,27 +87,28 @@
             top: 100px;
         }
 
+        /* ছোট রেকর্ড বাটন */
         .rec-container {
-            position: fixed; bottom: 20px; right: 20px;
-            display: flex; flex-direction: row-reverse; align-items: center; gap: 10px; z-index: 5000;
+            position: fixed; bottom: 15px; right: 15px;
+            display: flex; flex-direction: row-reverse; align-items: center; gap: 8px; z-index: 5000;
         }
         #timer {
-            position: absolute; bottom: 70px; right: 0; color: #ff5555;
-            font-family: monospace; font-size: 18px; font-weight: bold; display: none;
-            background: rgba(0,0,0,0.8); padding: 4px 10px; border-radius: 8px;
+            position: absolute; bottom: 65px; right: 0; color: #ff5555;
+            font-family: monospace; font-size: 16px; font-weight: bold; display: none;
+            background: rgba(0,0,0,0.7); padding: 3px 8px; border-radius: 6px;
         }
         .sub-rec-btn {
-            width: 44px; height: 44px; border-radius: 50%; border: 2px solid white;
+            width: 38px; height: 38px; border-radius: 50%; border: 2px solid white;
             display: none; align-items: center; justify-content: center; cursor: pointer;
-            font-size: 18px;
+            font-size: 16px;
             transition: transform 0.1s;
         }
         .sub-rec-btn:active { transform: scale(0.92); }
         #main-rec-btn {
-            width: 56px; height: 56px; background: red; border-radius: 50%;
-            border: 3px solid white; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; box-shadow: 0 0 15px rgba(255,0,0,0.4);
-            font-size: 22px;
+            width: 48px; height: 48px; background: red; border-radius: 50%;
+            border: 2px solid white; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; box-shadow: 0 0 12px rgba(255,0,0,0.4);
+            font-size: 20px;
             transition: transform 0.1s;
         }
         #main-rec-btn:active { transform: scale(0.94); }
@@ -118,22 +119,22 @@
             100% { opacity: 1; transform: scale(1); }
         }
 
-        button { padding: 8px 12px; cursor: pointer; border-radius: 20px; border: none; font-weight: bold; font-size: 12px; color: white; }
+        button { padding: 6px 10px; cursor: pointer; border-radius: 18px; border: none; font-weight: bold; font-size: 11px; color: white; }
         .btn-blue { background: #007bff; }
         .btn-green { background: #28a745; }
         .btn-gray { background: #555; width: 100%; }
-        .btn-inner { background: #444; flex: 1; padding: 5px 8px; font-size: 11px; }
+        .btn-inner { background: #444; flex: 1; padding: 4px 6px; font-size: 10px; }
         .active-btn { background: #f39c12 !important; }
-        input[type="range"] { width: 100%; accent-color: #007bff; margin: 5px 0; }
+        input[type="range"] { width: 100%; accent-color: #007bff; margin: 4px 0; }
         
         .status-msg {
             position: fixed;
-            bottom: 90px;
-            left: 15px;
+            bottom: 80px;
+            left: 12px;
             background: rgba(0,0,0,0.7);
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 16px;
+            font-size: 10px;
             color: #0f0;
             z-index: 5000;
         }
@@ -142,9 +143,9 @@
             background: #6c5ce7;
             color: white;
             width: 100%;
-            padding: 6px;
-            font-size: 12px;
-            border-radius: 20px;
+            padding: 5px;
+            font-size: 11px;
+            border-radius: 18px;
         }
     </style>
 </head>
@@ -241,19 +242,19 @@
     let cameraRecorder = null;
     let cameraChunks = [];
     let isCameraRecording = false;
-    let cameraPaused = false;
     
     let textRecorder = null;
     let textChunks = [];
     let isTextRecording = false;
-    let textPaused = false;
     let textStream = null;
     let textCanvas = null;
     let textAnimationId = null;
     
+    // টাইমার ভেরিয়েবল
     let recordingStartTime = 0;
-    let totalPausedTime = 0;
-    let pauseStartTime = 0;
+    let totalPausedDuration = 0;  // মোট পজ করা সময়
+    let currentPauseStart = 0;     // বর্তমান পজ শুরু সময়
+    let isPaused = false;
     let timerInterval = null;
     let activeRecordings = 0;
 
@@ -433,12 +434,19 @@
         }
     }
 
+    // টাইমার আপডেট - পজ সময় বাদ দিয়ে
+    function getActualElapsedTime() {
+        if (recordingStartTime === 0) return 0;
+        let elapsed = Date.now() - recordingStartTime - totalPausedDuration;
+        return Math.max(0, elapsed);
+    }
+
     function updateTimerDisplay() {
         if(activeRecordings === 0) {
             timerDisplay.style.display = 'none';
             return;
         }
-        const elapsed = Date.now() - recordingStartTime - totalPausedTime;
+        const elapsed = getActualElapsedTime();
         const h = Math.floor(elapsed / 3600000);
         const m = Math.floor((elapsed % 3600000) / 60000);
         const s = Math.floor((elapsed % 60000) / 1000);
@@ -456,7 +464,7 @@
         if(activeRecordings === 0) timerDisplay.style.display = 'none';
     }
 
-    // ক্যামেরা রেকর্ড
+    // ক্যামেরা রেকর্ড (টাইমার রেকর্ডে যাবে না)
     async function startCameraRecord() {
         if(!mediaStream) { alert("ক্যামেরা অন করুন!"); return; }
         if(isCameraRecording) return;
@@ -480,18 +488,23 @@
             setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 ফরম্যাট", 1500);
             cameraChunks = [];
             isCameraRecording = false;
-            cameraPaused = false;
             activeRecordings--;
-            if(activeRecordings === 0) stopTimer();
+            if(activeRecordings === 0) {
+                stopTimer();
+                // রিসেট টাইমার ভেরিয়েবল
+                recordingStartTime = 0;
+                totalPausedDuration = 0;
+                isPaused = false;
+            }
             updateRecordButtonStatus();
         };
         cameraRecorder.start(1000);
         isCameraRecording = true;
-        cameraPaused = false;
         activeRecordings++;
         if(activeRecordings === 1) { 
             recordingStartTime = Date.now();
-            totalPausedTime = 0;
+            totalPausedDuration = 0;
+            isPaused = false;
             startTimer();
         }
         updateRecordButtonStatus();
@@ -499,7 +512,7 @@
         setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 ফরম্যাট", 1500);
     }
 
-    // টেক্সট রেকর্ড
+    // টেক্সট রেকর্ড (টাইমার রেকর্ডে যাবে না)
     async function startTextRecord() {
         if(isTextRecording) return;
         textChunks = [];
@@ -540,12 +553,7 @@
             for(let i = 0; i < lines.length; i++) {
                 ctx.fillText(lines[i], textCanvas.width/2, textY + (i * lh) + parseInt(cs.fontSize));
             }
-            if(timerDisplay.style.display === 'block') {
-                ctx.font = "bold 18px monospace";
-                ctx.fillStyle = "#ffaa44";
-                ctx.textAlign = "right";
-                ctx.fillText(timerDisplay.innerText, textCanvas.width - 15, 35);
-            }
+            // টাইমার রেকর্ডে যাবে না - শুধু স্ক্রিনে দেখাবে, ক্যানভাসে ড্র করছি না
             textAnimationId = requestAnimationFrame(drawTextFrame);
         }
         drawTextFrame();
@@ -569,18 +577,22 @@
             setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 ফরম্যাট", 1500);
             textChunks = [];
             isTextRecording = false;
-            textPaused = false;
             activeRecordings--;
-            if(activeRecordings === 0) stopTimer();
+            if(activeRecordings === 0) {
+                stopTimer();
+                recordingStartTime = 0;
+                totalPausedDuration = 0;
+                isPaused = false;
+            }
             updateRecordButtonStatus();
         };
         textRecorder.start(1000);
         isTextRecording = true;
-        textPaused = false;
         activeRecordings++;
         if(activeRecordings === 1) { 
             recordingStartTime = Date.now();
-            totalPausedTime = 0;
+            totalPausedDuration = 0;
+            isPaused = false;
             startTimer();
         }
         updateRecordButtonStatus();
@@ -588,61 +600,44 @@
         setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 ফরম্যাট", 1500);
     }
     
-    // পজ/রিজিউম টগল ফাংশন - ঠিক করা হয়েছে
+    // পজ/রিজিউম - টাইমারও পজ হবে
     function togglePauseRecording() {
-        let anyActive = false;
-        let anyPaused = false;
-        
-        // চেক করা কোন রেকর্ডিং active আছে
-        if(isCameraRecording && cameraRecorder) {
-            anyActive = true;
-            if(cameraRecorder.state === "paused") anyPaused = true;
-        }
-        if(isTextRecording && textRecorder) {
-            anyActive = true;
-            if(textRecorder.state === "paused") anyPaused = true;
-        }
-        
-        if(!anyActive) {
+        if(activeRecordings === 0) {
             alert("কোনো রেকর্ডিং চলছে না!");
             return;
         }
         
-        // যদি কোন পজড থাকে, তাহলে রিজিউম করবে
-        if(anyPaused) {
-            // রিজিউম
-            if(isCameraRecording && cameraRecorder && cameraRecorder.state === "paused") {
-                cameraRecorder.resume();
-                cameraPaused = false;
-            }
-            if(isTextRecording && textRecorder && textRecorder.state === "paused") {
-                textRecorder.resume();
-                textPaused = false;
-            }
-            // টাইমার রিজিউম - পজের সময় যোগ করা
-            if(pauseStartTime > 0) {
-                totalPausedTime += (Date.now() - pauseStartTime);
-                pauseStartTime = 0;
-            }
-            statusMsg.innerText = "▶️ রেকর্ডিং রিজিউম হয়েছে";
-            pauseBtn.style.background = "#e67e22";
-            pauseBtn.innerText = "⏸️";
-            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4", 1500);
-        } else {
-            // পজ
+        if(!isPaused) {
+            // পজ করুন
             if(isCameraRecording && cameraRecorder && cameraRecorder.state === "recording") {
                 cameraRecorder.pause();
-                cameraPaused = true;
             }
             if(isTextRecording && textRecorder && textRecorder.state === "recording") {
                 textRecorder.pause();
-                textPaused = true;
             }
-            // টাইমার পজ - পজ শুরু সময় রেকর্ড
-            pauseStartTime = Date.now();
-            statusMsg.innerText = "⏸️ রেকর্ডিং পজ করা হয়েছে";
+            isPaused = true;
+            currentPauseStart = Date.now();
             pauseBtn.style.background = "#2ecc71";
             pauseBtn.innerText = "▶️";
+            statusMsg.innerText = "⏸️ রেকর্ডিং পজ | টাইমার থামানো হয়েছে";
+            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4", 1500);
+        } else {
+            // রিজিউম করুন
+            if(isCameraRecording && cameraRecorder && cameraRecorder.state === "paused") {
+                cameraRecorder.resume();
+            }
+            if(isTextRecording && textRecorder && textRecorder.state === "paused") {
+                textRecorder.resume();
+            }
+            // পজের সময় যোগ করুন totalPausedDuration-এ
+            if(currentPauseStart > 0) {
+                totalPausedDuration += (Date.now() - currentPauseStart);
+                currentPauseStart = 0;
+            }
+            isPaused = false;
+            pauseBtn.style.background = "#e67e22";
+            pauseBtn.innerText = "⏸️";
+            statusMsg.innerText = "▶️ রেকর্ডিং রিজিউম | টাইমার চলছে";
             setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4", 1500);
         }
     }
@@ -659,7 +654,8 @@
         }
         if(stopped) {
             // রিসেট পজ স্টেট
-            pauseStartTime = 0;
+            isPaused = false;
+            currentPauseStart = 0;
             pauseBtn.style.background = "#e67e22";
             pauseBtn.innerText = "⏸️";
             statusMsg.innerText = "💾 MP4 সংরক্ষণ করা হচ্ছে...";
@@ -675,9 +671,10 @@
         } else {
             mainRecBtn.classList.remove('recording-active');
             mainRecBtn.innerText = '⏺️';
-            // রিসেট পজ বাটন
             pauseBtn.style.background = "#e67e22";
             pauseBtn.innerText = "⏸️";
+            isPaused = false;
+            currentPauseStart = 0;
         }
     }
     
