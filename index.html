@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>প্রো টেলিপম্পটার V6</title>
+    <title>AI বিউটি টেলিপম্পটার</title>
     <style>
         body {
             margin: 0; background-color: #000; color: #fff;
@@ -28,66 +28,81 @@
         /* সেটিংস মেনু */
         #dropdown-menu {
             display: none; position: absolute; background-color: #222;
-            min-width: 220px; box-shadow: 0px 8px 20px rgba(0,0,0,0.8);
+            min-width: 250px; box-shadow: 0px 8px 20px rgba(0,0,0,0.8);
             padding: 15px; z-index: 3000; border-radius: 12px;
             top: 45px; left: 50%; transform: translateX(-50%); border: 1px solid #444;
         }
 
         .setting-item { margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px; border-bottom: 1px solid #333; padding-bottom: 10px; }
 
-        /* ক্যামেরা */
+        /* ক্যামেরা স্টাইল (এটাই ড্র্যাগেবল) */
         #video-container {
-            position: absolute; top: 180px; right: 20px; width: 140px; height: 140px;
-            border: 3px solid #007bff; border-radius: 50%; overflow: hidden;
-            background: #222; z-index: 999; cursor: move; touch-action: none; display: none;
+            position: absolute; top: 180px; right: 20px; width: 150px; height: 150px;
+            border: 3px solid #007bff; border-radius: 50%; /* ডিফল্ট গোল */
+            overflow: hidden; background: #222; z-index: 999;
+            cursor: move; touch-action: none; display: none;
+            transition: border-radius 0.3s ease;
         }
-        video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
 
-        /* স্ক্রলিং টেক্সট এরিয়া */
-        #display-area {
-            flex-grow: 1; position: relative; overflow: hidden;
-            cursor: grab; touch-action: none; /* টেনে নামানোর জন্য জরুরি */
+        /* বিউটি ফিল্টার এখানে অ্যাপ্লাই হবে */
+        video { 
+            width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1);
+            filter: brightness(1.1) contrast(1.1) saturate(1.1) blur(0px); /* ডিফল্ট বিউটি */
         }
+
+        /* স্ক্রলিং এরিয়া */
+        #display-area { flex-grow: 1; position: relative; overflow: hidden; touch-action: none; cursor: grab; }
         #scrolling-text {
             position: absolute; left: 50%; transform: translateX(-50%);
             width: 90%; text-align: center; font-size: 30px; font-weight: bold;
             line-height: 1.5; pointer-events: none; user-select: none;
         }
 
-        button { padding: 8px 15px; cursor: pointer; border-radius: 20px; border: none; background: #007bff; color: white; font-weight: bold; font-size: 13px; }
+        button { padding: 8px 12px; cursor: pointer; border-radius: 15px; border: none; background: #007bff; color: white; font-weight: bold; font-size: 12px; }
         .btn-settings { background: #6c757d; }
         .btn-cam { background: #28a745; }
-        .btn-hide { background: #dc3545; }
-        .btn-inner { background: #444; padding: 5px 12px; }
+        .btn-inner { background: #444; }
+        .active-filter { background: #e67e22 !important; }
     </style>
 </head>
 <body onclick="closeSettings(event)">
 
 <div id="controls">
-    <textarea id="inputText" placeholder="আপনার স্ক্রিপ্ট পেস্ট করুন..."></textarea>
+    <textarea id="inputText" placeholder="স্ক্রিপ্ট পেস্ট করুন..."></textarea>
     <div class="main-buttons">
         <button onclick="startScroll()">শুরু</button>
         <button class="btn-cam" onclick="toggleCamera()">ক্যামেরা</button>
-        <button class="btn-hide" onclick="hideCamera()">হাইড</button>
+        
         <div style="position: relative;">
             <button class="btn-settings" onclick="toggleSettings(event)">সেটিংস ⚙️</button>
             <div id="dropdown-menu" onclick="event.stopPropagation()">
+                
                 <div class="setting-item">
-                    <span>টেক্সট সাইজ:</span>
+                    <span>ক্যামেরা শেপ:</span>
                     <div style="display:flex; gap:10px;">
-                        <button class="btn-inner" onclick="changeFontSize(4)">A +</button>
-                        <button class="btn-inner" onclick="changeFontSize(-4)">A -</button>
+                        <button class="btn-inner" onclick="changeShape('50%')">গোল (Round)</button>
+                        <button class="btn-inner" onclick="changeShape('10px')">চৌকো (Square)</button>
                     </div>
                 </div>
+
                 <div class="setting-item">
-                    <span>ক্যামেরা সাইজ:</span>
+                    <span>বিউটি মোড:</span>
                     <div style="display:flex; gap:10px;">
-                        <button class="btn-inner" onclick="changeCamSize(20)">C +</button>
-                        <button class="btn-inner" onclick="changeCamSize(-20)">C -</button>
+                        <button id="beautyOff" class="btn-inner active-filter" onclick="setBeauty('off')">Off</button>
+                        <button id="beautyOn" class="btn-inner" onclick="setBeauty('on')">Smooth & Bright</button>
                     </div>
                 </div>
+
                 <div class="setting-item">
-                    <span>গতি:</span>
+                    <span>সাইজ কন্ট্রোল:</span>
+                    <div style="display:flex; justify-content: space-between;">
+                        <div>টেক্সট: <button onclick="changeFontSize(4)">+</button> <button onclick="changeFontSize(-4)">-</button></div>
+                        <div>ক্যামেরা: <button onclick="changeCamSize(20)">+</button> <button onclick="changeCamSize(-20)">-</button></div>
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <span>স্ক্রলিং গতি:</span>
                     <input type="range" id="speedRange" min="0.5" max="10" step="0.5" value="2">
                 </div>
             </div>
@@ -100,13 +115,12 @@
 </div>
 
 <div id="display-area" onmousedown="dragStartText(event)" ontouchstart="dragStartText(event)">
-    <div id="scrolling-text" id="scrollContent">এখানে লেখা আসবে...</div>
+    <div id="scrolling-text">এখানে লেখা আসবে...</div>
 </div>
 
 <script>
     let scrollInterval, isPaused = true, currentY = 0;
-    let currentFontSize = 30, currentCamSize = 140;
-    let isDraggingText = false, startY;
+    let currentFontSize = 30, currentCamSize = 150, isDraggingText = false, startY;
 
     const scrollText = document.getElementById('scrolling-text');
     const speedInput = document.getElementById('speedRange');
@@ -115,35 +129,42 @@
     const videoElem = document.getElementById('webcam');
     const menu = document.getElementById('dropdown-menu');
 
-    // ১. টেক্সট ড্র্যাগ এবং পজ কন্ট্রোল
-    function dragStartText(e) {
-        if (menu.style.display === "block") { menu.style.display = "none"; return; }
-        
-        isPaused = true; // টাচ করলে থেমে যাবে
-        isDraggingText = true;
-        let ev = e.type === 'touchstart' ? e.touches[0] : e;
-        startY = ev.clientY - currentY;
-
-        document.onmousemove = dragText;
-        document.ontouchmove = dragText;
-        document.onmouseup = dragEndText;
-        document.ontouchend = dragEndText;
+    // ১. বিউটি ফিল্টার ফাংশন
+    function setBeauty(mode) {
+        if(mode === 'on') {
+            // মুখ স্মুথ এবং উজ্জ্বল করার জন্য ফিল্টার
+            videoElem.style.filter = "brightness(1.2) contrast(1.1) saturate(1.1) blur(0.4px)";
+            document.getElementById('beautyOn').classList.add('active-filter');
+            document.getElementById('beautyOff').classList.remove('active-filter');
+        } else {
+            videoElem.style.filter = "none";
+            document.getElementById('beautyOff').classList.add('active-filter');
+            document.getElementById('beautyOn').classList.remove('active-filter');
+        }
     }
 
+    // ২. ক্যামেরা শেপ পরিবর্তন
+    function changeShape(type) {
+        videoCont.style.borderRadius = type;
+    }
+
+    // ৩. টেক্সট ড্র্যাগ ও স্ক্রল
+    function dragStartText(e) {
+        if (menu.style.display === "block") { menu.style.display = "none"; return; }
+        isPaused = true; isDraggingText = true;
+        let ev = e.type === 'touchstart' ? e.touches[0] : e;
+        startY = ev.clientY - currentY;
+        document.onmousemove = dragText; document.ontouchmove = dragText;
+        document.onmouseup = dragEndText; document.ontouchend = dragEndText;
+    }
     function dragText(e) {
         if (!isDraggingText) return;
         let ev = e.type === 'touchmove' ? e.touches[0] : e;
-        currentY = ev.clientY - startY; // টেনে নিচে নামানো
+        currentY = ev.clientY - startY;
         scrollText.style.top = currentY + "px";
     }
+    function dragEndText() { isDraggingText = false; isPaused = false; document.onmousemove = null; document.ontouchmove = null; }
 
-    function dragEndText() {
-        isDraggingText = false;
-        isPaused = false; // ছেড়ে দিলে আবার চলতে থাকবে
-        document.onmousemove = null; document.ontouchmove = null;
-    }
-
-    // ২. অটো স্ক্রলিং ফাংশন
     function startScroll() {
         const text = document.getElementById('inputText').value;
         if(!text) return alert("স্ক্রিপ্ট দিন!");
@@ -160,49 +181,29 @@
         }, 25);
     }
 
-    // ৩. সেটিংস ও ক্যামেরা কন্ট্রোল
+    // ৪. সেটিংস ও ক্যামেরা লজিক
     function toggleSettings(e) { e.stopPropagation(); menu.style.display = (menu.style.display === "block") ? "none" : "block"; }
     function closeSettings(e) { if (menu.style.display === "block") menu.style.display = "none"; }
     function changeFontSize(amount) { currentFontSize += amount; scrollText.style.fontSize = currentFontSize + "px"; }
     function changeCamSize(amount) {
         currentCamSize += amount;
-        if(currentCamSize > 50 && currentCamSize < 500) {
-            videoCont.style.width = currentCamSize + "px"; videoCont.style.height = currentCamSize + "px";
-        }
+        videoCont.style.width = currentCamSize + "px"; videoCont.style.height = currentCamSize + "px";
     }
 
     async function toggleCamera() {
-    if (videoCont.style.display === "block") {
-        // ক্যামেরা অফ করা
-        videoCont.style.display = "none";
-        if(videoElem.srcObject) { 
-            videoElem.srcObject.getTracks().forEach(t => t.stop()); 
-            videoElem.srcObject = null; 
-        }
-    } else {
-        // ক্যামেরা অন করা
-        videoCont.style.display = "block";
-        try {
-            // ব্রাউজারকে স্পষ্টভাবে ক্যামেরা রিকোয়েস্ট পাঠানো
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-                video: { 
-                    facingMode: "user", // সামনের ক্যামেরা
-                    width: { ideal: 400 },
-                    height: { ideal: 400 }
-                } 
-            });
-            videoElem.srcObject = stream;
-            videoElem.play(); // নিশ্চিতভাবে প্লে করা
-        } catch (err) { 
-            console.error(err);
-            alert("ক্যামেরা এক্সেস রিজেক্ট করা হয়েছে। ব্রাউজার সেটিংস থেকে ক্যামেরা Allow করুন।"); 
+        if (videoCont.style.display === "block") {
+            videoCont.style.display = "none";
+            if(videoElem.srcObject) { videoElem.srcObject.getTracks().forEach(t => t.stop()); videoElem.srcObject = null; }
+        } else {
+            videoCont.style.display = "block";
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+                videoElem.srcObject = stream;
+            } catch (err) { alert("ক্যামেরা অন হচ্ছে না!"); }
         }
     }
-}
 
-    function hideCamera() { videoCont.style.display = (videoCont.style.display === "none") ? "block" : "none"; }
-
-    // ক্যামেরা ড্র্যাগিং (Moveable Camera)
+    // ক্যামেরা ড্র্যাগিং
     let camActive = false, camInitX, camInitY;
     function dragStartCam(e) {
         let ev = e.type === 'touchstart' ? e.touches[0] : e;
