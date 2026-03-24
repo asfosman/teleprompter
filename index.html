@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI প্রো টেলিপম্পটার V25 - প্রো সেটিংস</title>
+    <title>AI প্রো টেলিপম্পটার V26 - MP4 রেকর্ড</title>
     <style>
         * {
             user-select: none;
@@ -158,7 +158,6 @@
         <div style="position: relative;" onclick="event.stopPropagation()">
             <button class="btn-gray" onclick="toggleSettings()">সেটিংস ⚙️</button>
             <div id="dropdown-menu">
-                <!-- ক্যামেরা পাল্টান - সেটিংসের ভিতরে -->
                 <div class="setting-item">
                     <span class="setting-label">📷 ক্যামেরা নির্বাচন</span>
                     <button class="cam-switch-setting" onclick="switchCamera()">🔄 ক্যামেরা পাল্টান</button>
@@ -219,7 +218,7 @@
     <div id="scrolling-text">এখানে আপনার স্ক্রিপ্ট লিখুন...</div>
 </div>
 
-<div class="status-msg" id="statusMsg">✅ প্রস্তুত</div>
+<div class="status-msg" id="statusMsg">✅ প্রস্তুত | MP4 ফরম্যাট</div>
 
 <script>
     const scrollText = document.getElementById('scrolling-text');
@@ -253,6 +252,24 @@
     let timerInterval = null;
     let activeRecordings = 0;
 
+    // MP4 এর জন্য MIME টাইপ চেক এবং সেট
+    function getMimeType() {
+        // MP4 এর জন্য支持的 MIME types
+        const mimeTypes = [
+            'video/mp4',
+            'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
+            'video/mp4;codecs=h264,aac',
+            'video/webm' // fallback
+        ];
+        
+        for (let mime of mimeTypes) {
+            if (MediaRecorder.isTypeSupported(mime)) {
+                return mime;
+            }
+        }
+        return 'video/webm'; // fallback
+    }
+
     function getVideoConstraints() {
         const constraints = { video: { facingMode: { exact: currentFacingMode } }, audio: true };
         if(currentResolution === 'fullhd') {
@@ -271,12 +288,12 @@
         btns.forEach(btn => btn.classList.remove('active-btn'));
         if(type === 'hd') {
             btns[0].classList.add('active-btn');
-            statusMsg.innerText = "HD (720p)";
+            statusMsg.innerText = "HD (720p) | MP4";
         } else {
             btns[1].classList.add('active-btn');
-            statusMsg.innerText = "Full HD (1080p)";
+            statusMsg.innerText = "Full HD (1080p) | MP4";
         }
-        setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত", 1500);
+        setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 ফরম্যাট", 1500);
         if(mediaStream) {
             const wasOn = videoCont.style.display === "block";
             if(wasOn) { toggleCamera(); setTimeout(() => toggleCamera(), 500); }
@@ -334,8 +351,8 @@
             videoElem.srcObject = stream;
             videoElem.style.transform = currentFacingMode === 'user' ? "scaleX(-1)" : "scaleX(1)";
             const camName = currentFacingMode === 'user' ? 'সামনের' : 'পিছনের';
-            statusMsg.innerText = `✅ ${camName} ক্যামেরা`;
-            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত", 1500);
+            statusMsg.innerText = `✅ ${camName} ক্যামেরা | MP4`;
+            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 ফরম্যাট", 1500);
         } catch(err) { alert("ক্যামেরা পরিবর্তন করা যায়নি!"); }
     }
 
@@ -399,7 +416,7 @@
             videoCont.style.display = "none";
             if(mediaStream) { mediaStream.getTracks().forEach(track => track.stop()); mediaStream = null; }
             statusMsg.innerText = "✅ ক্যামেরা বন্ধ";
-            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত", 1500);
+            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 ফরম্যাট", 1500);
         } else {
             videoCont.style.display = "block";
             try {
@@ -409,8 +426,8 @@
                 videoElem.srcObject = stream;
                 videoElem.style.transform = currentFacingMode === 'user' ? "scaleX(-1)" : "scaleX(1)";
                 setTimeout(() => makeDraggable(videoCont), 100);
-                statusMsg.innerText = "✅ ক্যামেরা চালু";
-                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত", 1500);
+                statusMsg.innerText = "✅ ক্যামেরা চালু | MP4";
+                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 ফরম্যাট", 1500);
             } catch(err) { alert("ক্যামেরা অ্যাক্সেস প্রয়োজন!"); videoCont.style.display = "none"; }
         }
     }
@@ -433,22 +450,28 @@
         if(activeRecordings === 0) timerDisplay.style.display = 'none';
     }
 
+    // ক্যামেরা রেকর্ড - MP4 ফরম্যাটে
     async function startCameraRecord() {
         if(!mediaStream) { alert("ক্যামেরা অন করুন!"); return; }
         if(isCameraRecording) return;
         cameraChunks = [];
-        cameraRecorder = new MediaRecorder(mediaStream, { mimeType: 'video/webm' });
+        const mimeType = getMimeType();
+        cameraRecorder = new MediaRecorder(mediaStream, { mimeType: mimeType });
         cameraRecorder.ondataavailable = e => { if(e.data.size > 0) cameraChunks.push(e.data); };
         cameraRecorder.onstop = () => {
-            const blob = new Blob(cameraChunks, { type: 'video/webm' });
+            const blob = new Blob(cameraChunks, { type: 'video/mp4' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `camera_${Date.now()}.webm`;
+            const timestamp = new Date().toISOString().slice(0,19).replace(/:/g, '-');
+            const camType = currentFacingMode === 'user' ? 'front' : 'back';
+            a.download = `camera_${camType}_${timestamp}.mp4`;
+            document.body.appendChild(a);
             a.click();
+            document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            statusMsg.innerText = "✅ ক্যামেরা ভিডিও সেভ হয়েছে";
-            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত", 1500);
+            statusMsg.innerText = "✅ ক্যামেরা MP4 সেভ হয়েছে";
+            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 ফরম্যাট", 1500);
             cameraChunks = [];
             isCameraRecording = false;
             activeRecordings--;
@@ -460,10 +483,11 @@
         activeRecordings++;
         if(activeRecordings === 1) { recordingStartTime = Date.now(); startTimer(); }
         updateRecordButtonStatus();
-        statusMsg.innerText = "📹 ক্যামেরা রেকর্ডিং";
-        setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত", 1500);
+        statusMsg.innerText = "📹 ক্যামেরা রেকর্ডিং (MP4)";
+        setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 ফরম্যাট", 1500);
     }
 
+    // টেক্সট রেকর্ড - MP4 ফরম্যাটে
     async function startTextRecord() {
         if(isTextRecording) return;
         textChunks = [];
@@ -515,19 +539,22 @@
         drawTextFrame();
         
         textStream = textCanvas.captureStream(30);
-        textRecorder = new MediaRecorder(textStream, { mimeType: 'video/webm' });
+        const mimeType = getMimeType();
+        textRecorder = new MediaRecorder(textStream, { mimeType: mimeType });
         textRecorder.ondataavailable = e => { if(e.data.size > 0) textChunks.push(e.data); };
         textRecorder.onstop = () => {
             if(textAnimationId) cancelAnimationFrame(textAnimationId);
-            const blob = new Blob(textChunks, { type: 'video/webm' });
+            const blob = new Blob(textChunks, { type: 'video/mp4' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `text_${Date.now()}.webm`;
+            a.download = `text_scroll_${Date.now()}.mp4`;
+            document.body.appendChild(a);
             a.click();
+            document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            statusMsg.innerText = "✅ টেক্সট ভিডিও সেভ হয়েছে";
-            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত", 1500);
+            statusMsg.innerText = "✅ টেক্সট MP4 সেভ হয়েছে";
+            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 ফরম্যাট", 1500);
             textChunks = [];
             isTextRecording = false;
             activeRecordings--;
@@ -539,8 +566,8 @@
         activeRecordings++;
         if(activeRecordings === 1) { recordingStartTime = Date.now(); startTimer(); }
         updateRecordButtonStatus();
-        statusMsg.innerText = "📝 টেক্সট রেকর্ডিং";
-        setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত", 1500);
+        statusMsg.innerText = "📝 টেক্সট রেকর্ডিং (MP4)";
+        setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 ফরম্যাট", 1500);
     }
     
     function pauseRecording() {
@@ -553,13 +580,13 @@
         }
         if(paused) {
             statusMsg.innerText = "⏸️ পaused";
-            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত", 1000);
+            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4", 1000);
         } else if((isCameraRecording && cameraRecorder?.state === "paused") || 
                   (isTextRecording && textRecorder?.state === "paused")) {
             if(isCameraRecording && cameraRecorder.state === "paused") cameraRecorder.resume();
             if(isTextRecording && textRecorder.state === "paused") textRecorder.resume();
-            statusMsg.innerText = "▶️ রেকর্ডিং চলছে";
-            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত", 1000);
+            statusMsg.innerText = "▶️ রেকর্ডিং চলছে (MP4)";
+            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4", 1000);
         } else { alert("কোনো রেকর্ডিং নেই!"); }
     }
     
@@ -571,7 +598,7 @@
         if(isTextRecording && textRecorder && (textRecorder.state === "recording" || textRecorder.state === "paused")) {
             textRecorder.stop(); stopped = true;
         }
-        if(stopped) statusMsg.innerText = "💾 সংরক্ষণ করা হচ্ছে...";
+        if(stopped) statusMsg.innerText = "💾 MP4 সংরক্ষণ করা হচ্ছে...";
         else alert("কোনো রেকর্ডিং নেই!");
     }
     
