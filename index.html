@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI প্রো টেলিপম্পটার V33 - স্ক্রিন ফিট টেক্সট</title>
+    <title>AI প্রো টেলিপম্পটার V34 - শব্দ অক্ষত রাখে</title>
     <style>
         * {
             user-select: none;
@@ -95,15 +95,12 @@
             user-select: none;
             white-space: pre-wrap;
             word-wrap: break-word;
-            word-break: break-word;
+            word-break: keep-all; /* শব্দ ভাঙা বন্ধ */
+            overflow-wrap: break-word;
             top: 100px;
             font-family: 'Segoe UI', 'Bangla', monospace;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-            background: linear-gradient(135deg, #fff, #ffaa00);
-            -webkit-background-clip: text;
-            background-clip: text;
             color: white;
-            text-shadow: 0 0 10px rgba(0,0,0,0.5);
         }
 
         /* রেকর্ড বাটন */
@@ -181,7 +178,6 @@
             border-radius: 18px;
         }
         
-        /* টেক্সট সাইজ স্লাইডার ওভাররাইড - স্ক্রিন ফিটের জন্য */
         .text-size-info {
             font-size: 10px;
             color: #ffaa44;
@@ -220,8 +216,8 @@
                 </div>
                 <div class="setting-item">
                     <span class="setting-label">📝 টেক্সট সাইজ</span>
-                    <input type="range" id="textSizeRange" min="16" max="60" value="32" oninput="resizeText(this.value)">
-                    <div class="text-size-info">স্ক্রিন অনুযায়ী অটো ফিট</div>
+                    <input type="range" id="textSizeRange" min="18" max="60" value="32" oninput="resizeText(this.value)">
+                    <div class="text-size-info">শব্দ অক্ষত রাখে | স্ক্রিন ফিট</div>
                 </div>
                 <div class="setting-item">
                     <span class="setting-label">📷 ক্যামেরা সাইজ</span>
@@ -259,7 +255,7 @@
     <div id="scrolling-text">এখানে আপনার স্ক্রিপ্ট লিখুন...</div>
 </div>
 
-<div class="status-msg" id="statusMsg">✅ প্রস্তুত | টেক্সট স্ক্রিন ফিট</div>
+<div class="status-msg" id="statusMsg">✅ প্রস্তুত | শব্দ অক্ষত রাখে</div>
 
 <script>
     const scrollText = document.getElementById('scrolling-text');
@@ -305,21 +301,34 @@
     let timerInterval = null;
     let activeRecordings = 0;
 
-    // স্ক্রিন ফিট টেক্সট সাইজ ক্যালকুলেশন
-    function calculateOptimalTextSize() {
-        const screenWidth = window.innerWidth;
-        const screenHeight = window.innerHeight;
-        // স্ক্রিনের প্রস্থের 5-8% টেক্সট সাইজ
-        let optimalSize = Math.max(20, Math.min(60, screenWidth * 0.07));
-        return Math.floor(optimalSize);
+    // শব্দ ভাঙা রোধ করে টেক্সট র‍্যাপ করার ফাংশন
+    function wrapText(ctx, text, maxWidth) {
+        const words = text.split(' ');
+        const lines = [];
+        let currentLine = '';
+        
+        for(let i = 0; i < words.length; i++) {
+            const word = words[i];
+            const testLine = currentLine ? currentLine + ' ' + word : word;
+            const metrics = ctx.measureText(testLine);
+            
+            if(metrics.width > maxWidth && currentLine !== '') {
+                lines.push(currentLine);
+                currentLine = word;
+            } else {
+                currentLine = testLine;
+            }
+        }
+        if(currentLine) {
+            lines.push(currentLine);
+        }
+        return lines;
     }
 
     function resizeText(value) {
         currentTextSize = parseInt(value);
-        // স্ক্রিন ফিটের জন্য ক্ল্যাম্প ব্যবহার
         const finalSize = Math.max(18, Math.min(60, currentTextSize));
         scrollText.style.fontSize = finalSize + "px";
-        // লাইন হাইট অটো অ্যাডজাস্ট
         scrollText.style.lineHeight = (finalSize * 1.4) + "px";
     }
 
@@ -377,7 +386,7 @@
             btns[1].classList.add('active-btn');
             statusMsg.innerText = "Full HD (1080p)";
         }
-        setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | টেক্সট স্ক্রিন ফিট", 1500);
+        setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | শব্দ অক্ষত রাখে", 1500);
         if(mediaStream) {
             const wasOn = videoCont.style.display === "block";
             if(wasOn) { toggleCamera(); setTimeout(() => toggleCamera(), 500); }
@@ -436,7 +445,7 @@
             videoElem.style.transform = currentFacingMode === 'user' ? "scaleX(-1)" : "scaleX(1)";
             const camName = currentFacingMode === 'user' ? 'সামনের' : 'পিছনের';
             statusMsg.innerText = `✅ ${camName} ক্যামেরা`;
-            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | টেক্সট স্ক্রিন ফিট", 1500);
+            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | শব্দ অক্ষত রাখে", 1500);
         } catch(err) { alert("ক্যামেরা পরিবর্তন করা যায়নি!"); }
     }
 
@@ -447,8 +456,8 @@
             currentY = 100; 
             scrollText.style.top = currentY + "px"; 
         }
-        // টেক্সট আপডেট হলে লাইন ব্রেক ঠিক রাখা
         scrollText.style.whiteSpace = "pre-wrap";
+        scrollText.style.wordBreak = "keep-all";
     }
 
     function refreshAndStartScroll() {
@@ -500,7 +509,7 @@
             videoCont.style.display = "none";
             if(mediaStream) { mediaStream.getTracks().forEach(track => track.stop()); mediaStream = null; }
             statusMsg.innerText = "✅ ক্যামেরা বন্ধ";
-            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | টেক্সট স্ক্রিন ফিট", 1500);
+            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | শব্দ অক্ষত রাখে", 1500);
         } else {
             videoCont.style.display = "block";
             try {
@@ -511,7 +520,7 @@
                 videoElem.style.transform = currentFacingMode === 'user' ? "scaleX(-1)" : "scaleX(1)";
                 setTimeout(() => makeDraggable(videoCont), 100);
                 statusMsg.innerText = "✅ ক্যামেরা চালু";
-                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | টেক্সট স্ক্রিন ফিট", 1500);
+                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | শব্দ অক্ষত রাখে", 1500);
             } catch(err) { alert("ক্যামেরা অ্যাক্সেস প্রয়োজন!"); videoCont.style.display = "none"; }
         }
     }
@@ -578,7 +587,7 @@
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
                 statusMsg.innerText = "✅ ক্যামেরা MP4 সেভ হয়েছে";
-                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | টেক্সট স্ক্রিন ফিট", 1500);
+                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | শব্দ অক্ষত রাখে", 1500);
                 cameraChunks = [];
                 isCameraRecording = false;
                 isCameraPaused = false;
@@ -596,7 +605,7 @@
             camRecBtn.classList.add('recording-active');
             camRecBtn.classList.remove('paused-state');
             statusMsg.innerText = "📹 ক্যামেরা রেকর্ডিং চলছে...";
-            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | টেক্সট স্ক্রিন ফিট", 1500);
+            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | শব্দ অক্ষত রাখে", 1500);
         } else {
             if(!isCameraPaused) {
                 if(cameraRecorder && cameraRecorder.state === "recording") {
@@ -607,7 +616,7 @@
                 camRecBtn.classList.add('paused-state');
                 camRecBtn.classList.remove('recording-active');
                 statusMsg.innerText = "⏸️ ক্যামেরা পজ";
-                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | টেক্সট স্ক্রিন ফিট", 1500);
+                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | শব্দ অক্ষত রাখে", 1500);
             } else {
                 if(cameraRecorder && cameraRecorder.state === "paused") {
                     cameraRecorder.resume();
@@ -620,13 +629,13 @@
                 camRecBtn.classList.remove('paused-state');
                 camRecBtn.classList.add('recording-active');
                 statusMsg.innerText = "▶️ ক্যামেরা রিজিউম";
-                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | টেক্সট স্ক্রিন ফিট", 1500);
+                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | শব্দ অক্ষত রাখে", 1500);
             }
         }
         updateButtonStyles();
     }
 
-    // টেক্সট রেকর্ড - স্ক্রিন ফিট সহ
+    // ========== টেক্সট রেকর্ড - শব্দ অক্ষত রাখার জন্য উন্নত ==========
     async function toggleTextRecording() {
         if(!isTextRecording) {
             textChunks = [];
@@ -652,13 +661,12 @@
                 
                 const textDiv = scrollText;
                 const textRect = textDiv.getBoundingClientRect();
-                const textX = textRect.left - newRect.left;
                 const textY = textRect.top - newRect.top;
                 const cs = window.getComputedStyle(textDiv);
                 
                 // টেক্সটের আসল কন্টেন্ট (লাইন ব্রেক সহ)
                 const fullText = textDiv.innerText;
-                const lines = fullText.split('\n');
+                const originalLines = fullText.split('\n');
                 
                 const fontSize = parseInt(cs.fontSize);
                 const lineHeight = fontSize * 1.4;
@@ -670,35 +678,41 @@
                 ctx.shadowBlur = 2;
                 ctx.shadowColor = "black";
                 
-                // স্ক্রিন ফিট - টেক্সটের প্রস্থ অনুযায়ী ওয়ার্ড ব্রেক
-                const maxWidth = textCanvas.width - 40;
+                const maxWidth = textCanvas.width - 60; // মার্জিন সহ
+                let currentYPos = textY;
                 
-                for(let i = 0; i < lines.length; i++) {
-                    const yPos = textY + (i * lineHeight) + fontSize;
-                    let line = lines[i];
+                for(let lineIndex = 0; lineIndex < originalLines.length; lineIndex++) {
+                    let line = originalLines[lineIndex];
                     
-                    // লাইন যদি খুব লম্বা হয় তাহলে ভেঙে ফেলা
-                    let words = line.split('');
+                    // শব্দ ভাঙা রোধ করে লাইন র‍্যাপ করা
+                    const words = line.split(' ');
                     let currentLine = '';
-                    let lines_output = [];
+                    let wrappedLines = [];
                     
-                    for(let char of words) {
-                        let testLine = currentLine + char;
-                        let metrics = ctx.measureText(testLine);
-                        if(metrics.width > maxWidth && currentLine.length > 0) {
-                            lines_output.push(currentLine);
-                            currentLine = char;
+                    for(let i = 0; i < words.length; i++) {
+                        const word = words[i];
+                        const testLine = currentLine ? currentLine + ' ' + word : word;
+                        const metrics = ctx.measureText(testLine);
+                        
+                        if(metrics.width > maxWidth && currentLine !== '') {
+                            wrappedLines.push(currentLine);
+                            currentLine = word;
                         } else {
                             currentLine = testLine;
                         }
                     }
-                    lines_output.push(currentLine);
-                    
-                    // প্রতিটি ভাঙা লাইন ড্র করা
-                    for(let j = 0; j < lines_output.length; j++) {
-                        const lineY = yPos + (j * lineHeight);
-                        ctx.fillText(lines_output[j], textCanvas.width / 2, lineY);
+                    if(currentLine) {
+                        wrappedLines.push(currentLine);
                     }
+                    
+                    // ড্র করা
+                    for(let w = 0; w < wrappedLines.length; w++) {
+                        const yPos = currentYPos + (w * lineHeight) + fontSize;
+                        ctx.fillText(wrappedLines[w], textCanvas.width / 2, yPos);
+                    }
+                    
+                    // পরবর্তী লাইনের জন্য Y পজিশন আপডেট
+                    currentYPos += (wrappedLines.length * lineHeight);
                 }
                 
                 textAnimationId = requestAnimationFrame(drawTextFrame);
@@ -722,7 +736,7 @@
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
                 statusMsg.innerText = "✅ টেক্সট MP4 সেভ হয়েছে";
-                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | টেক্সট স্ক্রিন ফিট", 1500);
+                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | শব্দ অক্ষত রাখে", 1500);
                 textChunks = [];
                 isTextRecording = false;
                 isTextPaused = false;
@@ -740,7 +754,7 @@
             textRecBtn.classList.add('recording-active');
             textRecBtn.classList.remove('paused-state');
             statusMsg.innerText = "📝 টেক্সট রেকর্ডিং চলছে...";
-            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | টেক্সট স্ক্রিন ফিট", 1500);
+            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | শব্দ অক্ষত রাখে", 1500);
         } else {
             if(!isTextPaused) {
                 if(textRecorder && textRecorder.state === "recording") {
@@ -751,7 +765,7 @@
                 textRecBtn.classList.add('paused-state');
                 textRecBtn.classList.remove('recording-active');
                 statusMsg.innerText = "⏸️ টেক্সট পজ";
-                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | টেক্সট স্ক্রিন ফিট", 1500);
+                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | শব্দ অক্ষত রাখে", 1500);
             } else {
                 if(textRecorder && textRecorder.state === "paused") {
                     textRecorder.resume();
@@ -764,7 +778,7 @@
                 textRecBtn.classList.remove('paused-state');
                 textRecBtn.classList.add('recording-active');
                 statusMsg.innerText = "▶️ টেক্সট রিজিউম";
-                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | টেক্সট স্ক্রিন ফিট", 1500);
+                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | শব্দ অক্ষত রাখে", 1500);
             }
         }
         updateButtonStyles();
@@ -815,21 +829,8 @@
         }
     }
     
-    // স্ক্রিন রিসাইজ হলে টেক্সট ফিট করা
-    window.addEventListener('resize', () => {
-        if(currentTextSize) {
-            resizeText(currentTextSize);
-        }
-        // স্ক্রলিং পজিশন ঠিক রাখা
-        if(isAutoScrolling && scrollText) {
-            // no action needed
-        }
-    });
-    
     // ইনিশিয়ালাইজ
-    const optimalSize = calculateOptimalTextSize();
-    textSizeRange.value = optimalSize;
-    resizeText(optimalSize);
+    resizeText(32);
     updateLiveText();
     
     setTimeout(() => {
@@ -839,4 +840,4 @@
     }, 100);
 </script>
 </body>
-        </html>
+    </html>
