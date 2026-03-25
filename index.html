@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI প্রো টেলিপম্পটার V30 - প্রো রেকর্ড</title>
+    <title>AI প্রো টেলিপম্পটার V31 - এক বাটনে শুরু/পজ</title>
     <style>
         * {
             user-select: none;
@@ -139,6 +139,7 @@
         }
         .paused-state {
             background: #f39c12 !important;
+            animation: none !important;
         }
 
         button { padding: 6px 10px; cursor: pointer; border-radius: 18px; border: none; font-weight: bold; font-size: 11px; color: white; }
@@ -239,7 +240,7 @@
     <div id="scrolling-text">এখানে আপনার স্ক্রিপ্ট লিখুন...</div>
 </div>
 
-<div class="status-msg" id="statusMsg">✅ প্রস্তুত | MP4 | উচ্চ মানের অডিও</div>
+<div class="status-msg" id="statusMsg">✅ প্রস্তুত | এক টাচে শুরু/পজ</div>
 
 <script>
     const scrollText = document.getElementById('scrolling-text');
@@ -250,7 +251,6 @@
     const timerDisplay = document.getElementById('timer');
     const camRecBtn = document.getElementById('camRecBtn');
     const textRecBtn = document.getElementById('textRecBtn');
-    const saveBtn = document.getElementById('saveBtn');
     const speedRange = document.getElementById('speedRange');
     const statusMsg = document.getElementById('statusMsg');
 
@@ -339,7 +339,7 @@
             btns[1].classList.add('active-btn');
             statusMsg.innerText = "Full HD (1080p) | উচ্চ মানের অডিও";
         }
-        setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 | উচ্চ মানের অডিও", 1500);
+        setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | এক টাচে শুরু/পজ", 1500);
         if(mediaStream) {
             const wasOn = videoCont.style.display === "block";
             if(wasOn) { toggleCamera(); setTimeout(() => toggleCamera(), 500); }
@@ -398,7 +398,7 @@
             videoElem.style.transform = currentFacingMode === 'user' ? "scaleX(-1)" : "scaleX(1)";
             const camName = currentFacingMode === 'user' ? 'সামনের' : 'পিছনের';
             statusMsg.innerText = `✅ ${camName} ক্যামেরা | উচ্চ মানের অডিও`;
-            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 | উচ্চ মানের অডিও", 1500);
+            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | এক টাচে শুরু/পজ", 1500);
         } catch(err) { alert("ক্যামেরা পরিবর্তন করা যায়নি!"); }
     }
 
@@ -458,7 +458,7 @@
             videoCont.style.display = "none";
             if(mediaStream) { mediaStream.getTracks().forEach(track => track.stop()); mediaStream = null; }
             statusMsg.innerText = "✅ ক্যামেরা বন্ধ";
-            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 | উচ্চ মানের অডিও", 1500);
+            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | এক টাচে শুরু/পজ", 1500);
         } else {
             videoCont.style.display = "block";
             try {
@@ -469,12 +469,12 @@
                 videoElem.style.transform = currentFacingMode === 'user' ? "scaleX(-1)" : "scaleX(1)";
                 setTimeout(() => makeDraggable(videoCont), 100);
                 statusMsg.innerText = "✅ ক্যামেরা চালু | উচ্চ মানের অডিও";
-                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 | উচ্চ মানের অডিও", 1500);
+                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | এক টাচে শুরু/পজ", 1500);
             } catch(err) { alert("ক্যামেরা অ্যাক্সেস প্রয়োজন!"); videoCont.style.display = "none"; }
         }
     }
 
-    // টাইমার আপডেট
+    // টাইমার আপডেট - শুধু যে রেকর্ডিং চলছে তার সময় দেখাবে
     function updateTimerDisplay() {
         if(activeRecordings === 0) {
             timerDisplay.style.display = 'none';
@@ -482,13 +482,19 @@
         }
         
         let currentTime = 0;
+        // ক্যামেরা রেকর্ডিং চললে তার সময় দেখাবে
         if(isCameraRecording && !isCameraPaused) {
             currentTime = Date.now() - cameraStartTime - cameraPausedDuration;
-        } else if(isTextRecording && !isTextPaused) {
+        } 
+        // টেক্সট রেকর্ডিং চললে তার সময় দেখাবে
+        else if(isTextRecording && !isTextPaused) {
             currentTime = Date.now() - textStartTime - textPausedDuration;
-        } else if(isCameraRecording && isCameraPaused) {
+        }
+        // পজড থাকলে শেষ সময় দেখাবে
+        else if(isCameraRecording && isCameraPaused) {
             currentTime = (cameraStartTime ? (Date.now() - cameraStartTime - cameraPausedDuration) : 0);
-        } else if(isTextRecording && isTextPaused) {
+        }
+        else if(isTextRecording && isTextPaused) {
             currentTime = (textStartTime ? (Date.now() - textStartTime - textPausedDuration) : 0);
         }
         
@@ -509,7 +515,7 @@
         if(activeRecordings === 0) timerDisplay.style.display = 'none';
     }
 
-    // ক্যামেরা রেকর্ড টগল (একই বাটনে শুরু/পজ)
+    // ক্যামেরা রেকর্ড টগল - এক বাটনে শুরু/পজ
     async function toggleCameraRecording() {
         if(!mediaStream) {
             alert("ক্যামেরা অন করুন!");
@@ -517,7 +523,7 @@
         }
         
         if(!isCameraRecording) {
-            // শুরু করুন
+            // ========== রেকর্ড শুরু ==========
             cameraChunks = [];
             const mimeType = getMimeType();
             cameraRecorder = new MediaRecorder(mediaStream, { mimeType: mimeType });
@@ -535,7 +541,7 @@
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
                 statusMsg.innerText = "✅ ক্যামেরা MP4 সেভ হয়েছে";
-                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 | উচ্চ মানের অডিও", 1500);
+                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | এক টাচে শুরু/পজ", 1500);
                 cameraChunks = [];
                 isCameraRecording = false;
                 isCameraPaused = false;
@@ -551,12 +557,13 @@
             activeRecordings++;
             startTimer();
             camRecBtn.classList.add('recording-active');
+            camRecBtn.classList.remove('paused-state');
             statusMsg.innerText = "📹 ক্যামেরা রেকর্ডিং চলছে...";
-            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 | উচ্চ মানের অডিও", 1500);
+            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | এক টাচে শুরু/পজ", 1500);
         } else {
-            // পজ/রিজিউম টগল
+            // ========== পজ / রিজিউম টগল ==========
             if(!isCameraPaused) {
-                // পজ করুন
+                // পজ করুন - রেকর্ড + টাইমার দুটোই থামবে
                 if(cameraRecorder && cameraRecorder.state === "recording") {
                     cameraRecorder.pause();
                 }
@@ -565,9 +572,9 @@
                 camRecBtn.classList.add('paused-state');
                 camRecBtn.classList.remove('recording-active');
                 statusMsg.innerText = "⏸️ ক্যামেরা পজ | টাইমার থামানো হয়েছে";
-                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 | উচ্চ মানের অডিও", 1500);
+                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | এক টাচে শুরু/পজ", 1500);
             } else {
-                // রিজিউম করুন
+                // রিজিউম করুন - রেকর্ড + টাইমার দুটোই শুরু হবে
                 if(cameraRecorder && cameraRecorder.state === "paused") {
                     cameraRecorder.resume();
                 }
@@ -579,15 +586,16 @@
                 camRecBtn.classList.remove('paused-state');
                 camRecBtn.classList.add('recording-active');
                 statusMsg.innerText = "▶️ ক্যামেরা রিজিউম | টাইমার চলছে";
-                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 | উচ্চ মানের অডিও", 1500);
+                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | এক টাচে শুরু/পজ", 1500);
             }
         }
         updateButtonStyles();
     }
 
-    // টেক্সট রেকর্ড টগল (একই বাটনে শুরু/পজ)
+    // টেক্সট রেকর্ড টগল - এক বাটনে শুরু/পজ
     async function toggleTextRecording() {
         if(!isTextRecording) {
+            // ========== রেকর্ড শুরু ==========
             textChunks = [];
             if(!textCanvas) {
                 textCanvas = document.createElement('canvas');
@@ -646,7 +654,7 @@
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
                 statusMsg.innerText = "✅ টেক্সট MP4 সেভ হয়েছে";
-                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 | উচ্চ মানের অডিও", 1500);
+                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | এক টাচে শুরু/পজ", 1500);
                 textChunks = [];
                 isTextRecording = false;
                 isTextPaused = false;
@@ -662,11 +670,13 @@
             activeRecordings++;
             startTimer();
             textRecBtn.classList.add('recording-active');
+            textRecBtn.classList.remove('paused-state');
             statusMsg.innerText = "📝 টেক্সট রেকর্ডিং চলছে...";
-            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 | উচ্চ মানের অডিও", 1500);
+            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | এক টাচে শুরু/পজ", 1500);
         } else {
-            // পজ/রিজিউম টগল
+            // ========== পজ / রিজিউম টগল ==========
             if(!isTextPaused) {
+                // পজ করুন - রেকর্ড + টাইমার দুটোই থামবে
                 if(textRecorder && textRecorder.state === "recording") {
                     textRecorder.pause();
                 }
@@ -675,8 +685,9 @@
                 textRecBtn.classList.add('paused-state');
                 textRecBtn.classList.remove('recording-active');
                 statusMsg.innerText = "⏸️ টেক্সট পজ | টাইমার থামানো হয়েছে";
-                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 | উচ্চ মানের অডিও", 1500);
+                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | এক টাচে শুরু/পজ", 1500);
             } else {
+                // রিজিউম করুন - রেকর্ড + টাইমার দুটোই শুরু হবে
                 if(textRecorder && textRecorder.state === "paused") {
                     textRecorder.resume();
                 }
@@ -688,7 +699,7 @@
                 textRecBtn.classList.remove('paused-state');
                 textRecBtn.classList.add('recording-active');
                 statusMsg.innerText = "▶️ টেক্সট রিজিউম | টাইমার চলছে";
-                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | MP4 | উচ্চ মানের অডিও", 1500);
+                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | এক টাচে শুরু/পজ", 1500);
             }
         }
         updateButtonStyles();
@@ -712,22 +723,28 @@
     }
     
     function updateButtonStyles() {
+        // ক্যামেরা বাটন স্টাইল
         if(isCameraRecording) {
-            camRecBtn.classList.add('recording-active');
             if(isCameraPaused) {
                 camRecBtn.classList.add('paused-state');
                 camRecBtn.classList.remove('recording-active');
+            } else {
+                camRecBtn.classList.add('recording-active');
+                camRecBtn.classList.remove('paused-state');
             }
         } else {
             camRecBtn.classList.remove('recording-active');
             camRecBtn.classList.remove('paused-state');
         }
         
+        // টেক্সট বাটন স্টাইল
         if(isTextRecording) {
-            textRecBtn.classList.add('recording-active');
             if(isTextPaused) {
                 textRecBtn.classList.add('paused-state');
                 textRecBtn.classList.remove('recording-active');
+            } else {
+                textRecBtn.classList.add('recording-active');
+                textRecBtn.classList.remove('paused-state');
             }
         } else {
             textRecBtn.classList.remove('recording-active');
@@ -744,4 +761,4 @@
     }, 100);
 </script>
 </body>
-</html>
+                    </html>
