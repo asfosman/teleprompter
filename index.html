@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI প্রো টেলিপম্পটার V34 - শব্দ অক্ষত রাখে</title>
+    <title>AI প্রো টেলিপম্পটার V35 - প্রো এডিট</title>
     <style>
         * {
             user-select: none;
@@ -33,14 +33,52 @@
 
         #dropdown-menu {
             display: none; position: absolute; background-color: #1e1e1e;
-            width: 250px; box-shadow: 0px 10px 30px rgba(0,0,0,0.9);
+            width: 260px; box-shadow: 0px 10px 30px rgba(0,0,0,0.9);
             padding: 10px; z-index: 3000; border-radius: 12px;
             top: 45px; left: 50%; transform: translateX(-50%); border: 1px solid #444;
         }
 
-        .setting-item { margin-bottom: 8px; border-bottom: 1px solid #333; padding-bottom: 6px; }
-        .setting-label { display: block; margin-bottom: 4px; font-size: 11px; color: #bbb; }
+        .setting-item { margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 8px; }
+        .setting-label { display: block; margin-bottom: 5px; font-size: 11px; color: #bbb; }
         .btn-group { display: flex; gap: 5px; }
+        
+        /* কন্ট্রোল গ্রুপ - মাইনাস প্লাস বাটন */
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: space-between;
+        }
+        .control-value {
+            background: #333;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+            min-width: 50px;
+            text-align: center;
+            font-weight: bold;
+            color: #ffaa44;
+        }
+        .minus-btn, .plus-btn {
+            background: #444;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            transition: 0.1s;
+        }
+        .minus-btn:active, .plus-btn:active {
+            transform: scale(0.92);
+            background: #f39c12;
+        }
+        .slider-inline {
+            flex: 1;
+            margin: 0 5px;
+        }
 
         #video-container {
             position: absolute; top: 180px; right: 20px; 
@@ -48,11 +86,13 @@
             border-radius: 50%; overflow: hidden; background: #222; z-index: 999;
             cursor: grab; touch-action: none; display: none;
             box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            transition: all 0.1s ease;
         }
         #video-container:active { cursor: grabbing; }
         video { 
             width: 100%; height: 100%; object-fit: cover; 
             pointer-events: none;
+            transition: filter 0.2s ease;
         }
         
         .drag-handle {
@@ -82,28 +122,25 @@
         }
         #display-area:active { cursor: grabbing; }
         
-        /* টেক্সট স্ক্রিন ফিট করার জন্য CSS */
         #scrolling-text {
             position: absolute;
             left: 5%;
             width: 90%;
             text-align: center;
-            font-size: clamp(20px, 6vw, 45px);
+            font-size: 32px;
             font-weight: bold;
             line-height: 1.4;
             pointer-events: none;
             user-select: none;
             white-space: pre-wrap;
-            word-wrap: break-word;
-            word-break: keep-all; /* শব্দ ভাঙা বন্ধ */
-            overflow-wrap: break-word;
+            word-break: keep-all;
             top: 100px;
             font-family: 'Segoe UI', 'Bangla', monospace;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
             color: white;
+            transition: font-size 0.1s ease;
         }
 
-        /* রেকর্ড বাটন */
         .rec-container {
             position: fixed; bottom: 15px; right: 15px;
             display: flex;
@@ -184,6 +221,22 @@
             text-align: center;
             margin-top: 5px;
         }
+        
+        .beauty-btns {
+            display: flex;
+            gap: 8px;
+            margin-top: 5px;
+        }
+        .beauty-btn {
+            background: #444;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            cursor: pointer;
+        }
+        .beauty-active {
+            background: #f39c12;
+        }
     </style>
 </head>
 <body onclick="closeAllMenus()">
@@ -201,10 +254,12 @@
                     <button class="cam-switch-setting" onclick="switchCamera()">🔄 ক্যামেরা পাল্টান</button>
                 </div>
                 <div class="setting-item">
-                    <span class="setting-label">✨ বিউটি মোড</span>
-                    <div class="btn-group">
-                        <button id="bOff" class="btn-inner active-btn" onclick="setBeauty('off')">Off</button>
-                        <button id="bOn" class="btn-inner" onclick="setBeauty('on')">স্মুথ</button>
+                    <span class="setting-label">✨ বিউটি মোড (স্মুথ)</span>
+                    <div class="beauty-btns">
+                        <div id="beautyOff" class="beauty-btn beauty-active" onclick="setBeautyMode('off')">Off</div>
+                        <div id="beautySoft" class="beauty-btn" onclick="setBeautyMode('soft')">মৃদু</div>
+                        <div id="beautySmooth" class="beauty-btn" onclick="setBeautyMode('smooth')">স্মুথ</div>
+                        <div id="beautyGlow" class="beauty-btn" onclick="setBeautyMode('glow')">গ্লো</div>
                     </div>
                 </div>
                 <div class="setting-item">
@@ -216,16 +271,31 @@
                 </div>
                 <div class="setting-item">
                     <span class="setting-label">📝 টেক্সট সাইজ</span>
-                    <input type="range" id="textSizeRange" min="18" max="60" value="32" oninput="resizeText(this.value)">
-                    <div class="text-size-info">শব্দ অক্ষত রাখে | স্ক্রিন ফিট</div>
+                    <div class="control-group">
+                        <button class="minus-btn" onclick="adjustTextSize(-5)">−</button>
+                        <input type="range" id="textSizeRange" min="18" max="60" value="32" style="flex:1" oninput="resizeText(this.value)">
+                        <span class="control-value" id="textSizeValue">32px</span>
+                        <button class="plus-btn" onclick="adjustTextSize(5)">+</button>
+                    </div>
+                    <div class="text-size-info">শব্দ অক্ষত রাখে</div>
                 </div>
                 <div class="setting-item">
                     <span class="setting-label">📷 ক্যামেরা সাইজ</span>
-                    <input type="range" id="camSizeRange" min="80" max="500" value="150" oninput="resizeCam(this.value)">
+                    <div class="control-group">
+                        <button class="minus-btn" onclick="adjustCamSize(-5)">−</button>
+                        <input type="range" id="camSizeRange" min="80" max="500" value="150" style="flex:1" oninput="resizeCam(this.value)">
+                        <span class="control-value" id="camSizeValue">150px</span>
+                        <button class="plus-btn" onclick="adjustCamSize(5)">+</button>
+                    </div>
                 </div>
                 <div class="setting-item">
                     <span class="setting-label">⚡ স্ক্রলিং গতি</span>
-                    <input type="range" id="speedRange" min="0.5" max="15" step="0.5" value="2">
+                    <div class="control-group">
+                        <button class="minus-btn" onclick="adjustSpeed(-0.5)">−</button>
+                        <input type="range" id="speedRange" min="0.5" max="15" step="0.5" value="2" style="flex:1" oninput="updateSpeed(this.value)">
+                        <span class="control-value" id="speedValue">2.0</span>
+                        <button class="plus-btn" onclick="adjustSpeed(0.5)">+</button>
+                    </div>
                 </div>
                 <div class="setting-item">
                     <span class="setting-label">🎬 রেজুলেশন</span>
@@ -255,7 +325,7 @@
     <div id="scrolling-text">এখানে আপনার স্ক্রিপ্ট লিখুন...</div>
 </div>
 
-<div class="status-msg" id="statusMsg">✅ প্রস্তুত | শব্দ অক্ষত রাখে</div>
+<div class="status-msg" id="statusMsg">✅ প্রস্তুত | উন্নত বিউটি মোড</div>
 
 <script>
     const scrollText = document.getElementById('scrolling-text');
@@ -268,6 +338,10 @@
     const textRecBtn = document.getElementById('textRecBtn');
     const speedRange = document.getElementById('speedRange');
     const textSizeRange = document.getElementById('textSizeRange');
+    const camSizeRange = document.getElementById('camSizeRange');
+    const textSizeValue = document.getElementById('textSizeValue');
+    const camSizeValue = document.getElementById('camSizeValue');
+    const speedValue = document.getElementById('speedValue');
     const statusMsg = document.getElementById('statusMsg');
 
     let scrollInterval, isAutoScrolling = false, currentY = 100;
@@ -276,6 +350,7 @@
     let currentFacingMode = 'user';
     let currentResolution = 'fullhd';
     let currentTextSize = 32;
+    let currentBeautyMode = 'off';
     
     // রেকর্ডিং স্টেট
     let cameraRecorder = null;
@@ -301,7 +376,63 @@
     let timerInterval = null;
     let activeRecordings = 0;
 
-    // শব্দ ভাঙা রোধ করে টেক্সট র‍্যাপ করার ফাংশন
+    // বিউটি মোড ফিল্টার
+    function setBeautyMode(mode) {
+        currentBeautyMode = mode;
+        const btns = ['beautyOff', 'beautySoft', 'beautySmooth', 'beautyGlow'];
+        btns.forEach(btn => document.getElementById(btn).classList.remove('beauty-active'));
+        document.getElementById(`beauty${mode.charAt(0).toUpperCase() + mode.slice(1)}`).classList.add('beauty-active');
+        
+        switch(mode) {
+            case 'off':
+                videoElem.style.filter = "none";
+                statusMsg.innerText = "✨ বিউটি মোড: Off";
+                break;
+            case 'soft':
+                videoElem.style.filter = "brightness(1.05) contrast(1.05) blur(0.2px)";
+                statusMsg.innerText = "✨ বিউটি মোড: মৃদু";
+                break;
+            case 'smooth':
+                videoElem.style.filter = "brightness(1.1) contrast(1.1) blur(0.5px) saturate(1.05)";
+                statusMsg.innerText = "✨ বিউটি মোড: স্মুথ";
+                break;
+            case 'glow':
+                videoElem.style.filter = "brightness(1.15) contrast(1.15) blur(0.8px) saturate(1.1) drop-shadow(0 0 2px rgba(255,255,200,0.5))";
+                statusMsg.innerText = "✨ বিউটি মোড: গ্লো";
+                break;
+        }
+        setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | উন্নত বিউটি মোড", 1500);
+    }
+
+    // অ্যাডজাস্ট ফাংশন
+    function adjustTextSize(change) {
+        let newVal = currentTextSize + change;
+        newVal = Math.min(60, Math.max(18, newVal));
+        textSizeRange.value = newVal;
+        resizeText(newVal);
+    }
+    
+    function adjustCamSize(change) {
+        let newVal = parseInt(camSizeRange.value) + change;
+        newVal = Math.min(500, Math.max(80, newVal));
+        camSizeRange.value = newVal;
+        resizeCam(newVal);
+    }
+    
+    function adjustSpeed(change) {
+        let newVal = parseFloat(speedRange.value) + change;
+        newVal = Math.min(15, Math.max(0.5, newVal));
+        speedRange.value = newVal;
+        updateSpeed(newVal);
+    }
+    
+    function updateSpeed(val) {
+        speedValue.innerText = parseFloat(val).toFixed(1);
+        if(isAutoScrolling) {
+            // স্ক্রলিং চললে স্পিড আপডেট
+        }
+    }
+
     function wrapText(ctx, text, maxWidth) {
         const words = text.split(' ');
         const lines = [];
@@ -319,9 +450,7 @@
                 currentLine = testLine;
             }
         }
-        if(currentLine) {
-            lines.push(currentLine);
-        }
+        if(currentLine) lines.push(currentLine);
         return lines;
     }
 
@@ -330,6 +459,14 @@
         const finalSize = Math.max(18, Math.min(60, currentTextSize));
         scrollText.style.fontSize = finalSize + "px";
         scrollText.style.lineHeight = (finalSize * 1.4) + "px";
+        textSizeValue.innerText = finalSize + "px";
+    }
+
+    function resizeCam(value) {
+        const val = parseInt(value);
+        videoCont.style.width = val + "px";
+        videoCont.style.height = val + "px";
+        camSizeValue.innerText = val + "px";
     }
 
     function getAudioConstraints() {
@@ -386,7 +523,7 @@
             btns[1].classList.add('active-btn');
             statusMsg.innerText = "Full HD (1080p)";
         }
-        setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | শব্দ অক্ষত রাখে", 1500);
+        setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | উন্নত বিউটি মোড", 1500);
         if(mediaStream) {
             const wasOn = videoCont.style.display === "block";
             if(wasOn) { toggleCamera(); setTimeout(() => toggleCamera(), 500); }
@@ -443,9 +580,10 @@
             mediaStream = stream;
             videoElem.srcObject = stream;
             videoElem.style.transform = currentFacingMode === 'user' ? "scaleX(-1)" : "scaleX(1)";
+            setBeautyMode(currentBeautyMode);
             const camName = currentFacingMode === 'user' ? 'সামনের' : 'পিছনের';
             statusMsg.innerText = `✅ ${camName} ক্যামেরা`;
-            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | শব্দ অক্ষত রাখে", 1500);
+            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | উন্নত বিউটি মোড", 1500);
         } catch(err) { alert("ক্যামেরা পরিবর্তন করা যায়নি!"); }
     }
 
@@ -497,19 +635,13 @@
     function toggleSettings() { menu.style.display = (menu.style.display === "block") ? "none" : "block"; }
     function closeAllMenus() { menu.style.display = "none"; }
     function changeShape(s) { videoCont.style.borderRadius = s; }
-    function resizeCam(v) { videoCont.style.width = v+"px"; videoCont.style.height = v+"px"; }
-    function setBeauty(m) {
-        videoElem.style.filter = (m==='on') ? "brightness(1.15) contrast(1.1) blur(0.3px)" : "none";
-        document.getElementById('bOn').classList.toggle('active-btn', m==='on');
-        document.getElementById('bOff').classList.toggle('active-btn', m==='off');
-    }
 
     async function toggleCamera() {
         if(videoCont.style.display === "block") {
             videoCont.style.display = "none";
             if(mediaStream) { mediaStream.getTracks().forEach(track => track.stop()); mediaStream = null; }
             statusMsg.innerText = "✅ ক্যামেরা বন্ধ";
-            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | শব্দ অক্ষত রাখে", 1500);
+            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | উন্নত বিউটি মোড", 1500);
         } else {
             videoCont.style.display = "block";
             try {
@@ -518,9 +650,10 @@
                 mediaStream = stream;
                 videoElem.srcObject = stream;
                 videoElem.style.transform = currentFacingMode === 'user' ? "scaleX(-1)" : "scaleX(1)";
+                setBeautyMode(currentBeautyMode);
                 setTimeout(() => makeDraggable(videoCont), 100);
                 statusMsg.innerText = "✅ ক্যামেরা চালু";
-                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | শব্দ অক্ষত রাখে", 1500);
+                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | উন্নত বিউটি মোড", 1500);
             } catch(err) { alert("ক্যামেরা অ্যাক্সেস প্রয়োজন!"); videoCont.style.display = "none"; }
         }
     }
@@ -537,12 +670,6 @@
         } 
         else if(isTextRecording && !isTextPaused) {
             currentTime = Date.now() - textStartTime - textPausedDuration;
-        }
-        else if(isCameraRecording && isCameraPaused) {
-            currentTime = (cameraStartTime ? (Date.now() - cameraStartTime - cameraPausedDuration) : 0);
-        }
-        else if(isTextRecording && isTextPaused) {
-            currentTime = (textStartTime ? (Date.now() - textStartTime - textPausedDuration) : 0);
         }
         
         const h = Math.floor(currentTime / 3600000);
@@ -562,12 +689,9 @@
         if(activeRecordings === 0) timerDisplay.style.display = 'none';
     }
 
-    // ক্যামেরা রেকর্ড টগল
+    // ক্যামেরা রেকর্ড
     async function toggleCameraRecording() {
-        if(!mediaStream) {
-            alert("ক্যামেরা অন করুন!");
-            return;
-        }
+        if(!mediaStream) { alert("ক্যামেরা অন করুন!"); return; }
         
         if(!isCameraRecording) {
             cameraChunks = [];
@@ -587,7 +711,7 @@
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
                 statusMsg.innerText = "✅ ক্যামেরা MP4 সেভ হয়েছে";
-                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | শব্দ অক্ষত রাখে", 1500);
+                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | উন্নত বিউটি মোড", 1500);
                 cameraChunks = [];
                 isCameraRecording = false;
                 isCameraPaused = false;
@@ -603,9 +727,7 @@
             activeRecordings++;
             startTimer();
             camRecBtn.classList.add('recording-active');
-            camRecBtn.classList.remove('paused-state');
             statusMsg.innerText = "📹 ক্যামেরা রেকর্ডিং চলছে...";
-            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | শব্দ অক্ষত রাখে", 1500);
         } else {
             if(!isCameraPaused) {
                 if(cameraRecorder && cameraRecorder.state === "recording") {
@@ -616,7 +738,6 @@
                 camRecBtn.classList.add('paused-state');
                 camRecBtn.classList.remove('recording-active');
                 statusMsg.innerText = "⏸️ ক্যামেরা পজ";
-                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | শব্দ অক্ষত রাখে", 1500);
             } else {
                 if(cameraRecorder && cameraRecorder.state === "paused") {
                     cameraRecorder.resume();
@@ -629,13 +750,13 @@
                 camRecBtn.classList.remove('paused-state');
                 camRecBtn.classList.add('recording-active');
                 statusMsg.innerText = "▶️ ক্যামেরা রিজিউম";
-                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | শব্দ অক্ষত রাখে", 1500);
             }
+            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | উন্নত বিউটি মোড", 1500);
         }
         updateButtonStyles();
     }
 
-    // ========== টেক্সট রেকর্ড - শব্দ অক্ষত রাখার জন্য উন্নত ==========
+    // টেক্সট রেকর্ড
     async function toggleTextRecording() {
         if(!isTextRecording) {
             textChunks = [];
@@ -664,7 +785,6 @@
                 const textY = textRect.top - newRect.top;
                 const cs = window.getComputedStyle(textDiv);
                 
-                // টেক্সটের আসল কন্টেন্ট (লাইন ব্রেক সহ)
                 const fullText = textDiv.innerText;
                 const originalLines = fullText.split('\n');
                 
@@ -678,13 +798,11 @@
                 ctx.shadowBlur = 2;
                 ctx.shadowColor = "black";
                 
-                const maxWidth = textCanvas.width - 60; // মার্জিন সহ
+                const maxWidth = textCanvas.width - 60;
                 let currentYPos = textY;
                 
                 for(let lineIndex = 0; lineIndex < originalLines.length; lineIndex++) {
                     let line = originalLines[lineIndex];
-                    
-                    // শব্দ ভাঙা রোধ করে লাইন র‍্যাপ করা
                     const words = line.split(' ');
                     let currentLine = '';
                     let wrappedLines = [];
@@ -701,17 +819,12 @@
                             currentLine = testLine;
                         }
                     }
-                    if(currentLine) {
-                        wrappedLines.push(currentLine);
-                    }
+                    if(currentLine) wrappedLines.push(currentLine);
                     
-                    // ড্র করা
                     for(let w = 0; w < wrappedLines.length; w++) {
                         const yPos = currentYPos + (w * lineHeight) + fontSize;
                         ctx.fillText(wrappedLines[w], textCanvas.width / 2, yPos);
                     }
-                    
-                    // পরবর্তী লাইনের জন্য Y পজিশন আপডেট
                     currentYPos += (wrappedLines.length * lineHeight);
                 }
                 
@@ -736,7 +849,7 @@
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
                 statusMsg.innerText = "✅ টেক্সট MP4 সেভ হয়েছে";
-                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | শব্দ অক্ষত রাখে", 1500);
+                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | উন্নত বিউটি মোড", 1500);
                 textChunks = [];
                 isTextRecording = false;
                 isTextPaused = false;
@@ -752,9 +865,7 @@
             activeRecordings++;
             startTimer();
             textRecBtn.classList.add('recording-active');
-            textRecBtn.classList.remove('paused-state');
             statusMsg.innerText = "📝 টেক্সট রেকর্ডিং চলছে...";
-            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | শব্দ অক্ষত রাখে", 1500);
         } else {
             if(!isTextPaused) {
                 if(textRecorder && textRecorder.state === "recording") {
@@ -765,7 +876,6 @@
                 textRecBtn.classList.add('paused-state');
                 textRecBtn.classList.remove('recording-active');
                 statusMsg.innerText = "⏸️ টেক্সট পজ";
-                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | শব্দ অক্ষত রাখে", 1500);
             } else {
                 if(textRecorder && textRecorder.state === "paused") {
                     textRecorder.resume();
@@ -778,8 +888,8 @@
                 textRecBtn.classList.remove('paused-state');
                 textRecBtn.classList.add('recording-active');
                 statusMsg.innerText = "▶️ টেক্সট রিজিউম";
-                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | শব্দ অক্ষত রাখে", 1500);
             }
+            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | উন্নত বিউটি মোড", 1500);
         }
         updateButtonStyles();
     }
@@ -831,7 +941,10 @@
     
     // ইনিশিয়ালাইজ
     resizeText(32);
+    resizeCam(150);
+    updateSpeed(2);
     updateLiveText();
+    setBeautyMode('off');
     
     setTimeout(() => {
         videoCont.style.left = 'auto';
@@ -840,4 +953,4 @@
     }, 100);
 </script>
 </body>
-    </html>
+                        </html>
