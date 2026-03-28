@@ -2,56 +2,169 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI প্রো টেলিপম্পটার V35 - প্রো এডিট</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>AI প্রো টেলিপম্পটার - ডান সাইড সেটিংস</title>
     <style>
         * {
             user-select: none;
             -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
         }
         
         body {
-            margin: 0; background-color: #000; color: #fff;
-            font-family: 'Segoe UI', sans-serif; overflow: hidden;
-            display: flex; flex-direction: column; height: 100vh;
+            margin: 0;
+            background-color: #000;
+            color: #fff;
+            font-family: 'Segoe UI', sans-serif;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100vw;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+
+        .app-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background: #000;
+            position: relative;
         }
 
         #controls {
-            padding: 8px; background: #1a1a1a; display: flex;
-            flex-direction: column; align-items: center; gap: 6px;
-            z-index: 2000; border-bottom: 2px solid #333;
+            padding: 8px;
+            background: #1a1a1a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            z-index: 2000;
+            border-bottom: 1px solid #333;
         }
 
         textarea {
-            width: 90%; max-width: 550px; height: 40px; background: #222;
-            color: #0f0; border: 1px solid #444; padding: 6px; border-radius: 8px;
-            font-size: 12px; outline: none;
+            width: 90%;
+            max-width: 550px;
+            height: 45px;
+            background: #222;
+            color: #0f0;
+            border: 1px solid #444;
+            padding: 8px;
+            border-radius: 20px;
+            font-size: 13px;
+            outline: none;
             font-family: monospace;
+            text-align: left;
+            resize: vertical;
         }
 
-        .main-buttons { display: flex; gap: 6px; justify-content: center; position: relative; flex-wrap: wrap; }
+        .main-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            position: relative;
+            flex-wrap: wrap;
+        }
 
+        .open-source-btn {
+            background: #6c5ce7;
+            padding: 6px 14px;
+            border-radius: 25px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .open-source-btn:active { transform: scale(0.96); }
+
+        /* ডান সাইডের সেটিংস মেনু */
         #dropdown-menu {
-            display: none; position: absolute; background-color: #1e1e1e;
-            width: 260px; box-shadow: 0px 10px 30px rgba(0,0,0,0.9);
-            padding: 10px; z-index: 3000; border-radius: 12px;
-            top: 45px; left: 50%; transform: translateX(-50%); border: 1px solid #444;
+            display: none;
+            position: fixed;
+            right: 0;
+            top: 0;
+            width: 50%;
+            max-width: 320px;
+            height: 100vh;
+            background-color: #121212;
+            box-shadow: -5px 0 25px rgba(0,0,0,0.8);
+            padding: 20px 16px;
+            z-index: 10000;
+            overflow-y: auto;
+            border-left: 2px solid #ff4757;
         }
-
-        .setting-item { margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 8px; }
-        .setting-label { display: block; margin-bottom: 5px; font-size: 11px; color: #bbb; }
-        .btn-group { display: flex; gap: 5px; }
         
-        /* কন্ট্রোল গ্রুপ - মাইনাস প্লাস বাটন */
+        #dropdown-menu::-webkit-scrollbar {
+            width: 4px;
+        }
+        #dropdown-menu::-webkit-scrollbar-track {
+            background: #2c2c2c;
+            border-radius: 10px;
+        }
+        #dropdown-menu::-webkit-scrollbar-thumb {
+            background: #ff4757;
+            border-radius: 10px;
+        }
+        
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #333;
+        }
+        .settings-header h3 {
+            margin: 0;
+            font-size: 18px;
+            color: #ffaa44;
+        }
+        .close-settings {
+            background: #333;
+            border: none;
+            color: white;
+            font-size: 20px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .close-settings:active { transform: scale(0.92); background: #ff4757; }
+        
+        .setting-item {
+            margin-bottom: 18px;
+            border-bottom: 1px solid #2a2a2a;
+            padding-bottom: 12px;
+        }
+        .setting-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #ddd;
+            font-weight: bold;
+        }
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
         .control-group {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             justify-content: space-between;
         }
         .control-value {
-            background: #333;
-            padding: 4px 8px;
+            background: #2a2a2a;
+            padding: 4px 10px;
             border-radius: 20px;
             font-size: 12px;
             min-width: 50px;
@@ -60,95 +173,142 @@
             color: #ffaa44;
         }
         .minus-btn, .plus-btn {
-            background: #444;
+            background: #2c2c2c;
             border: none;
-            width: 28px;
-            height: 28px;
+            width: 34px;
+            height: 34px;
             border-radius: 50%;
-            font-size: 16px;
+            font-size: 18px;
             font-weight: bold;
             cursor: pointer;
             color: white;
-            transition: 0.1s;
         }
         .minus-btn:active, .plus-btn:active {
             transform: scale(0.92);
             background: #f39c12;
         }
-        .slider-inline {
-            flex: 1;
-            margin: 0 5px;
+
+        .color-preview {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 2px solid white;
+            cursor: pointer;
+        }
+        input[type="color"] {
+            width: 45px;
+            height: 38px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            background: transparent;
+        }
+        .color-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 5px;
         }
 
         #video-container {
-            position: absolute; top: 180px; right: 20px; 
-            width: 150px; height: 150px; border: 3px solid #007bff;
-            border-radius: 50%; overflow: hidden; background: #222; z-index: 999;
-            cursor: grab; touch-action: none; display: none;
+            position: absolute;
+            bottom: 100px;
+            right: 15px;
+            width: 110px;
+            height: 110px;
+            border: 2px solid #ff4757;
+            border-radius: 50%;
+            overflow: hidden;
+            background: #222;
+            z-index: 999;
+            cursor: grab;
+            display: none;
             box-shadow: 0 5px 20px rgba(0,0,0,0.5);
-            transition: all 0.1s ease;
         }
-        #video-container:active { cursor: grabbing; }
-        video { 
-            width: 100%; height: 100%; object-fit: cover; 
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
             pointer-events: none;
-            transition: filter 0.2s ease;
         }
         
         .drag-handle {
             position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(255,255,255,0.05);
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.1);
             cursor: grab;
             z-index: 10;
+            border-radius: 50%;
         }
         .drag-handle::after {
             content: "⋮⋮";
             position: absolute;
-            top: 3px;
+            top: 5px;
             left: 50%;
             transform: translateX(-50%);
             font-size: 14px;
-            color: rgba(255,255,255,0.6);
+            color: rgba(255,255,255,0.8);
             background: rgba(0,0,0,0.5);
-            padding: 2px 5px;
+            padding: 2px 6px;
             border-radius: 12px;
             pointer-events: none;
         }
 
-        #display-area { 
-            flex-grow: 1; position: relative; overflow: hidden; background: #000; 
-            cursor: grab; 
+        #display-area {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background: #000;
+            width: 100%;
         }
-        #display-area:active { cursor: grabbing; }
-        
+        .bg-media {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 0;
+            pointer-events: none;
+        }
         #scrolling-text {
             position: absolute;
-            left: 5%;
-            width: 90%;
+            width: 50%;
+            max-width: 280px;
             text-align: center;
-            font-size: 32px;
+            font-size: 24px;
             font-weight: bold;
             line-height: 1.4;
-            pointer-events: none;
-            user-select: none;
+            cursor: grab;
             white-space: pre-wrap;
             word-break: keep-all;
             top: 100px;
-            font-family: 'Segoe UI', 'Bangla', monospace;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            font-family: 'Segoe UI', 'Bangla', system-ui;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
             color: white;
-            transition: font-size 0.1s ease;
+            z-index: 10;
+            padding: 0;
+            background: transparent;
+            touch-action: none;
+        }
+        #scrolling-text:active {
+            cursor: grabbing;
         }
 
         .rec-container {
-            position: fixed; bottom: 15px; right: 15px;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 15px;
             z-index: 5000;
-            background: rgba(0,0,0,0.6);
-            padding: 8px 15px;
+            background: rgba(0,0,0,0.7);
+            padding: 8px 20px;
             border-radius: 50px;
             backdrop-filter: blur(10px);
         }
@@ -158,27 +318,25 @@
             font-size: 16px;
             font-weight: bold;
             background: rgba(0,0,0,0.7);
-            padding: 4px 10px;
-            border-radius: 20px;
-            letter-spacing: 1px;
+            padding: 4px 12px;
+            border-radius: 30px;
         }
         .rec-btn {
-            width: 48px;
-            height: 48px;
+            width: 52px;
+            height: 52px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 22px;
-            transition: transform 0.1s;
+            font-size: 24px;
             border: 2px solid white;
         }
-        .rec-btn:active { transform: scale(0.94); }
+        .rec-btn:active { transform: scale(0.92); }
         .recording-active { animation: blink 1s infinite; }
         @keyframes blink {
             0% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.7; transform: scale(0.95); }
+            50% { opacity: 0.7; transform: scale(0.96); }
             100% { opacity: 1; transform: scale(1); }
         }
         .cam-record { background: #dc3545; }
@@ -186,282 +344,452 @@
         .save-record { background: #007bff; }
         .paused-state { background: #f39c12 !important; animation: none !important; }
 
-        button { padding: 6px 10px; cursor: pointer; border-radius: 18px; border: none; font-weight: bold; font-size: 11px; color: white; }
+        button {
+            padding: 6px 12px;
+            cursor: pointer;
+            border-radius: 25px;
+            border: none;
+            font-weight: bold;
+            font-size: 11px;
+            color: white;
+        }
+        button:active { transform: scale(0.96); }
         .btn-blue { background: #007bff; }
         .btn-green { background: #28a745; }
-        .btn-gray { background: #555; width: 100%; }
-        .btn-inner { background: #444; flex: 1; padding: 4px 6px; font-size: 10px; }
+        .btn-gray { background: #555; width: auto; padding: 6px 16px; }
+        .btn-inner { background: #444; flex: 1; padding: 5px 8px; font-size: 11px; border-radius: 20px; }
         .active-btn { background: #f39c12 !important; }
-        input[type="range"] { width: 100%; accent-color: #007bff; margin: 4px 0; }
+        input[type="range"] {
+            width: 100%;
+            accent-color: #ff4757;
+            margin: 4px 0;
+        }
         
         .status-msg {
             position: fixed;
-            bottom: 80px;
-            left: 12px;
-            background: rgba(0,0,0,0.7);
-            padding: 3px 8px;
-            border-radius: 16px;
-            font-size: 10px;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            padding: 5px 12px;
+            border-radius: 25px;
+            font-size: 11px;
             color: #0f0;
             z-index: 5000;
+            white-space: nowrap;
+            pointer-events: none;
         }
         
         .cam-switch-setting {
             background: #6c5ce7;
             color: white;
             width: 100%;
-            padding: 5px;
-            font-size: 11px;
-            border-radius: 18px;
-        }
-        
-        .text-size-info {
-            font-size: 10px;
-            color: #ffaa44;
-            text-align: center;
-            margin-top: 5px;
+            padding: 8px;
+            font-size: 12px;
+            border-radius: 25px;
+            cursor: pointer;
+            border: none;
         }
         
         .beauty-btns {
             display: flex;
             gap: 8px;
             margin-top: 5px;
+            flex-wrap: wrap;
         }
         .beauty-btn {
-            background: #444;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 11px;
+            background: #2c2c2c;
+            padding: 5px 14px;
+            border-radius: 25px;
+            font-size: 12px;
             cursor: pointer;
         }
-        .beauty-active {
-            background: #f39c12;
+        .beauty-active { background: #f39c12; color: #111; font-weight: bold; }
+        
+        .text-size-info {
+            font-size: 9px;
+            color: #ffaa44;
+            text-align: center;
+            margin-top: 5px;
+        }
+
+        .settings-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 9999;
+        }
+        
+        @media (max-width: 600px) {
+            #dropdown-menu { width: 75%; max-width: 280px; }
+            .rec-container { gap: 10px; padding: 6px 15px; }
+            .rec-btn { width: 48px; height: 48px; font-size: 22px; }
+            #scrolling-text { width: 55%; font-size: 20px; }
+            #video-container { width: 90px; height: 90px; bottom: 90px; }
+            .status-msg { font-size: 10px; bottom: 85px; }
+            #timer { font-size: 14px; }
+            textarea { height: 42px; font-size: 12px; }
         }
     </style>
 </head>
-<body onclick="closeAllMenus()">
+<body>
+<div class="app-container">
+    <div id="controls">
+        <textarea id="inputText" placeholder="আপনার স্ক্রিপ্ট লিখুন (এন্টার দিয়ে নতুন লাইন)..."></textarea>
+        <div class="main-buttons">
+            <div class="open-source-btn" onclick="openMediaPicker()">📁 ওপেন সোর্স</div>
+            <button class="btn-blue" onclick="refreshAndStartScroll()">শুরু</button>
+            <button class="btn-green" onclick="toggleCamera()">📷 ক্যামেরা</button>
+            <button class="btn-gray" onclick="toggleSettings()">⚙️ সেটিংস</button>
+        </div>
+    </div>
 
-<div id="controls">
-    <textarea id="inputText" oninput="updateLiveText()" placeholder="আপনার স্ক্রিপ্ট লিখুন (এন্টার দিয়ে নতুন লাইন)..."></textarea>
-    <div class="main-buttons">
-        <button class="btn-blue" onclick="refreshAndStartScroll()">শুরু</button>
-        <button class="btn-green" onclick="toggleCamera()">ক্যামেরা</button>
-        <div style="position: relative;" onclick="event.stopPropagation()">
-            <button class="btn-gray" onclick="toggleSettings()">সেটিংস ⚙️</button>
-            <div id="dropdown-menu">
-                <div class="setting-item">
-                    <span class="setting-label">📷 ক্যামেরা নির্বাচন</span>
-                    <button class="cam-switch-setting" onclick="switchCamera()">🔄 ক্যামেরা পাল্টান</button>
-                </div>
-                <div class="setting-item">
-                    <span class="setting-label">✨ বিউটি মোড (স্মুথ)</span>
-                    <div class="beauty-btns">
-                        <div id="beautyOff" class="beauty-btn beauty-active" onclick="setBeautyMode('off')">Off</div>
-                        <div id="beautySoft" class="beauty-btn" onclick="setBeautyMode('soft')">মৃদু</div>
-                        <div id="beautySmooth" class="beauty-btn" onclick="setBeautyMode('smooth')">স্মুথ</div>
-                        <div id="beautyGlow" class="beauty-btn" onclick="setBeautyMode('glow')">গ্লো</div>
-                    </div>
-                </div>
-                <div class="setting-item">
-                    <span class="setting-label">📐 ক্যামেরা শেপ</span>
-                    <div class="btn-group">
-                        <button class="btn-inner" onclick="changeShape('50%')">গোল</button>
-                        <button class="btn-inner" onclick="changeShape('12px')">চৌকো</button>
-                    </div>
-                </div>
-                <div class="setting-item">
-                    <span class="setting-label">📝 টেক্সট সাইজ</span>
-                    <div class="control-group">
-                        <button class="minus-btn" onclick="adjustTextSize(-5)">−</button>
-                        <input type="range" id="textSizeRange" min="18" max="60" value="32" style="flex:1" oninput="resizeText(this.value)">
-                        <span class="control-value" id="textSizeValue">32px</span>
-                        <button class="plus-btn" onclick="adjustTextSize(5)">+</button>
-                    </div>
-                    <div class="text-size-info">শব্দ অক্ষত রাখে</div>
-                </div>
-                <div class="setting-item">
-                    <span class="setting-label">📷 ক্যামেরা সাইজ</span>
-                    <div class="control-group">
-                        <button class="minus-btn" onclick="adjustCamSize(-5)">−</button>
-                        <input type="range" id="camSizeRange" min="80" max="500" value="150" style="flex:1" oninput="resizeCam(this.value)">
-                        <span class="control-value" id="camSizeValue">150px</span>
-                        <button class="plus-btn" onclick="adjustCamSize(5)">+</button>
-                    </div>
-                </div>
-                <div class="setting-item">
-                    <span class="setting-label">⚡ স্ক্রলিং গতি</span>
-                    <div class="control-group">
-                        <button class="minus-btn" onclick="adjustSpeed(-0.5)">−</button>
-                        <input type="range" id="speedRange" min="0.5" max="15" step="0.5" value="2" style="flex:1" oninput="updateSpeed(this.value)">
-                        <span class="control-value" id="speedValue">2.0</span>
-                        <button class="plus-btn" onclick="adjustSpeed(0.5)">+</button>
-                    </div>
-                </div>
-                <div class="setting-item">
-                    <span class="setting-label">🎬 রেজুলেশন</span>
-                    <div class="btn-group">
-                        <button class="btn-inner" onclick="setResolution('hd')">HD (720p)</button>
-                        <button class="btn-inner active-btn" onclick="setResolution('fullhd')">Full HD</button>
-                    </div>
-                </div>
-            </div>
+    <div id="video-container">
+        <div class="drag-handle"></div>
+        <video id="webcam" autoplay playsinline muted></video>
+    </div>
+
+    <div class="rec-container">
+        <div id="timer">00:00:00</div>
+        <div id="camRecBtn" class="rec-btn cam-record" onclick="toggleCameraRecording()">📹</div>
+        <div id="textRecBtn" class="rec-btn text-record" onclick="toggleTextRecording()">📝</div>
+        <div id="saveBtn" class="rec-btn save-record" onclick="stopRecording()">💾</div>
+    </div>
+
+    <div id="display-area">
+        <div id="scrolling-text">এখানে আপনার স্ক্রিপ্ট লিখুন...</div>
+    </div>
+
+    <div class="status-msg" id="statusMsg">✅ প্রস্তুত</div>
+</div>
+
+<div id="settingsOverlay" class="settings-overlay" onclick="closeSettingsPanel()"></div>
+
+<div id="dropdown-menu">
+    <div class="settings-header">
+        <h3>⚙️ কন্ট্রোল স্টুডিও</h3>
+        <button class="close-settings" onclick="closeSettingsPanel()">✕</button>
+    </div>
+    <div class="setting-item">
+        <span class="setting-label">📷 ক্যামেরা নির্বাচন</span>
+        <button class="cam-switch-setting" onclick="switchCamera()">🔄 ক্যামেরা পাল্টান</button>
+    </div>
+    <div class="setting-item">
+        <span class="setting-label">✨ বিউটি মোড</span>
+        <div class="beauty-btns">
+            <div id="beautyOff" class="beauty-btn beauty-active" onclick="setBeautyMode('off')">Off</div>
+            <div id="beautySoft" class="beauty-btn" onclick="setBeautyMode('soft')">মৃদু</div>
+            <div id="beautySmooth" class="beauty-btn" onclick="setBeautyMode('smooth')">স্মুথ</div>
+            <div id="beautyGlow" class="beauty-btn" onclick="setBeautyMode('glow')">গ্লো</div>
+        </div>
+    </div>
+    <div class="setting-item">
+        <span class="setting-label">📐 ক্যামেরা শেপ</span>
+        <div class="btn-group">
+            <button class="btn-inner" onclick="changeShape('50%')">গোল</button>
+            <button class="btn-inner" onclick="changeShape('12px')">চৌকো</button>
+        </div>
+    </div>
+    <div class="setting-item">
+        <span class="setting-label">📝 টেক্সট সাইজ</span>
+        <div class="control-group">
+            <button class="minus-btn" onclick="adjustTextSize(-2)">−</button>
+            <input type="range" id="textSizeRange" min="16" max="48" value="24" oninput="resizeText(this.value)">
+            <span class="control-value" id="textSizeValue">24px</span>
+            <button class="plus-btn" onclick="adjustTextSize(2)">+</button>
+        </div>
+    </div>
+    <div class="setting-item">
+        <span class="setting-label">🎨 টেক্সট কালার</span>
+        <div class="color-group">
+            <input type="color" id="textColorPicker" value="#ffffff" onchange="changeTextColor(this.value)">
+            <div class="color-preview" id="colorPreview" style="background:#ffffff" onclick="document.getElementById('textColorPicker').click()"></div>
+            <span style="font-size:11px;">রং নির্বাচন</span>
+        </div>
+    </div>
+    <div class="setting-item">
+        <span class="setting-label">📍 টেক্সট পজিশন</span>
+        <div class="control-group">
+            <button class="minus-btn" onclick="adjustTextPosition(-5)">←</button>
+            <input type="range" id="textPositionRange" min="15" max="85" value="25" oninput="setTextPosition(this.value)">
+            <span class="control-value" id="textPositionValue">25%</span>
+            <button class="plus-btn" onclick="adjustTextPosition(5)">→</button>
+        </div>
+        <div class="text-size-info">অর্ধেক স্ক্রিনের মধ্যে থাকবে</div>
+    </div>
+    <div class="setting-item">
+        <span class="setting-label">📷 ক্যামেরা সাইজ</span>
+        <div class="control-group">
+            <button class="minus-btn" onclick="adjustCamSize(-5)">−</button>
+            <input type="range" id="camSizeRange" min="70" max="200" value="100" oninput="resizeCam(this.value)">
+            <span class="control-value" id="camSizeValue">100px</span>
+            <button class="plus-btn" onclick="adjustCamSize(5)">+</button>
+        </div>
+    </div>
+    <div class="setting-item">
+        <span class="setting-label">⚡ স্ক্রলিং গতি</span>
+        <div class="control-group">
+            <button class="minus-btn" onclick="adjustSpeed(-0.5)">−</button>
+            <input type="range" id="speedRange" min="0.5" max="12" step="0.5" value="2" oninput="updateSpeed(this.value)">
+            <span class="control-value" id="speedValue">2.0</span>
+            <button class="plus-btn" onclick="adjustSpeed(0.5)">+</button>
+        </div>
+    </div>
+    <div class="setting-item">
+        <span class="setting-label">🎬 রেজুলেশন</span>
+        <div class="btn-group">
+            <button class="btn-inner" onclick="setResolution('hd')">HD (720p)</button>
+            <button class="btn-inner active-btn" onclick="setResolution('fullhd')">Full HD</button>
         </div>
     </div>
 </div>
 
-<div id="video-container">
-    <div class="drag-handle"></div>
-    <video id="webcam" autoplay playsinline muted></video>
-</div>
-
-<div class="rec-container" onclick="event.stopPropagation()">
-    <div id="timer">00:00:00</div>
-    <div id="camRecBtn" class="rec-btn cam-record" onclick="toggleCameraRecording()">📹</div>
-    <div id="textRecBtn" class="rec-btn text-record" onclick="toggleTextRecording()">📝</div>
-    <div id="saveBtn" class="rec-btn save-record" onclick="stopRecording()">💾</div>
-</div>
-
-<div id="display-area" onmousedown="dragTextStart(event)" ontouchstart="dragTextStart(event)">
-    <div id="scrolling-text">এখানে আপনার স্ক্রিপ্ট লিখুন...</div>
-</div>
-
-<div class="status-msg" id="statusMsg">✅ প্রস্তুত | উন্নত বিউটি মোড</div>
-
 <script>
+    // DOM Elements
     const scrollText = document.getElementById('scrolling-text');
+    const inputTextArea = document.getElementById('inputText');
     const videoElem = document.getElementById('webcam');
     const videoCont = document.getElementById('video-container');
     const displayArea = document.getElementById('display-area');
     const menu = document.getElementById('dropdown-menu');
+    const overlay = document.getElementById('settingsOverlay');
     const timerDisplay = document.getElementById('timer');
     const camRecBtn = document.getElementById('camRecBtn');
     const textRecBtn = document.getElementById('textRecBtn');
     const speedRange = document.getElementById('speedRange');
     const textSizeRange = document.getElementById('textSizeRange');
     const camSizeRange = document.getElementById('camSizeRange');
+    const textPositionRange = document.getElementById('textPositionRange');
     const textSizeValue = document.getElementById('textSizeValue');
     const camSizeValue = document.getElementById('camSizeValue');
     const speedValue = document.getElementById('speedValue');
+    const textPositionValue = document.getElementById('textPositionValue');
+    const textColorPicker = document.getElementById('textColorPicker');
+    const colorPreview = document.getElementById('colorPreview');
     const statusMsg = document.getElementById('statusMsg');
 
+    // Variables
     let scrollInterval, isAutoScrolling = false, currentY = 100;
-    let isMenuOpen = false;
     let mediaStream = null;
     let currentFacingMode = 'user';
     let currentResolution = 'fullhd';
-    let currentTextSize = 32;
+    let currentTextSize = 24;
     let currentBeautyMode = 'off';
+    let currentBgElement = null;
     
-    // রেকর্ডিং স্টেট
-    let cameraRecorder = null;
-    let cameraChunks = [];
-    let isCameraRecording = false;
-    let isCameraPaused = false;
+    let isDraggingText = false;
+    let dragStartY = 0, dragStartTop = 0;
     
-    let textRecorder = null;
-    let textChunks = [];
-    let isTextRecording = false;
-    let isTextPaused = false;
-    let textStream = null;
-    let textCanvas = null;
-    let textAnimationId = null;
+    let cameraRecorder = null, cameraChunks = [], isCameraRecording = false, isCameraPaused = false;
+    let textRecorder = null, textChunks = [], isTextRecording = false, isTextPaused = false;
+    let textStream = null, textCanvas = null, textAnimationId = null;
     
-    // টাইমার ভেরিয়েবল
-    let cameraStartTime = 0;
-    let textStartTime = 0;
-    let cameraPausedDuration = 0;
-    let textPausedDuration = 0;
-    let cameraCurrentPauseStart = 0;
-    let textCurrentPauseStart = 0;
+    let cameraStartTime = 0, textStartTime = 0;
+    let cameraPausedDuration = 0, textPausedDuration = 0;
+    let cameraCurrentPauseStart = 0, textCurrentPauseStart = 0;
     let timerInterval = null;
     let activeRecordings = 0;
 
-    // বিউটি মোড ফিল্টার
+    // টেক্সট আপডেট ফাংশন - এটাই মূল ফিক্স
+    function updateLiveText() {
+        let text = inputTextArea.value;
+        if(text.trim() === "") {
+            scrollText.innerText = "এখানে আপনার স্ক্রিপ্ট লিখুন...";
+        } else {
+            scrollText.innerText = text;
+        }
+        // স্ক্রলিং না থাকলে পজিশন ঠিক রাখা
+        if(!isAutoScrolling) { 
+            currentY = 100; 
+            scrollText.style.top = currentY + "px"; 
+        }
+    }
+    
+    // ইনপুট ইভেন্ট লিসেনার
+    inputTextArea.addEventListener('input', updateLiveText);
+    inputTextArea.addEventListener('keyup', updateLiveText);
+    inputTextArea.addEventListener('change', updateLiveText);
+
+    // সেটিংস ফাংশন
+    function toggleSettings() {
+        if (menu.style.display === "flex" || menu.style.display === "block") {
+            closeSettingsPanel();
+        } else {
+            openSettingsPanel();
+        }
+    }
+    
+    function openSettingsPanel() {
+        menu.style.display = "block";
+        overlay.style.display = "block";
+    }
+    
+    function closeSettingsPanel() {
+        menu.style.display = "none";
+        overlay.style.display = "none";
+    }
+    
+    // Camera functions
+    async function startCamera() {
+        try {
+            const constraints = {
+                video: { facingMode: currentFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
+                audio: true
+            };
+            const stream = await navigator.mediaDevices.getUserMedia(constraints);
+            videoElem.srcObject = stream;
+            mediaStream = stream;
+            videoElem.style.transform = currentFacingMode === 'user' ? "scaleX(-1)" : "scaleX(1)";
+            return true;
+        } catch(err) {
+            alert("📷 ক্যামেরা চালু করতে সমস্যা!\n\nঅনুমতি দিন এবং পৃষ্ঠাটি রিফ্রেশ করুন।");
+            return false;
+        }
+    }
+
+    function changeTextColor(color) {
+        scrollText.style.color = color;
+        textColorPicker.value = color;
+        colorPreview.style.background = color;
+    }
+
+    function setTextPosition(value) {
+        let pos = parseInt(value);
+        pos = Math.min(85, Math.max(15, pos));
+        scrollText.style.left = pos + "%";
+        scrollText.style.transform = "translateX(-" + pos + "%)";
+        textPositionValue.innerText = pos + "%";
+    }
+    
+    function adjustTextPosition(change) {
+        let newVal = parseInt(textPositionRange.value) + change;
+        newVal = Math.min(85, Math.max(15, newVal));
+        textPositionRange.value = newVal;
+        setTextPosition(newVal);
+    }
+
+    // Text Drag
+    function onTextTouchStart(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if(isAutoScrolling) isAutoScrolling = false;
+        isDraggingText = true;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        dragStartY = clientY;
+        dragStartTop = currentY;
+        document.addEventListener('mousemove', onTextTouchMove);
+        document.addEventListener('touchmove', onTextTouchMove, { passive: false });
+        document.addEventListener('mouseup', onTextTouchEnd);
+        document.addEventListener('touchend', onTextTouchEnd);
+    }
+    
+    function onTextTouchMove(e) {
+        if(!isDraggingText) return;
+        e.preventDefault();
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        let newTop = dragStartTop + (clientY - dragStartY);
+        const minY = -scrollText.offsetHeight + 50;
+        const maxY = displayArea.offsetHeight - 50;
+        newTop = Math.min(maxY, Math.max(minY, newTop));
+        currentY = newTop;
+        scrollText.style.top = currentY + "px";
+    }
+    
+    function onTextTouchEnd() {
+        isDraggingText = false;
+        document.removeEventListener('mousemove', onTextTouchMove);
+        document.removeEventListener('touchmove', onTextTouchMove);
+        document.removeEventListener('mouseup', onTextTouchEnd);
+        document.removeEventListener('touchend', onTextTouchEnd);
+    }
+    
+    scrollText.addEventListener('mousedown', onTextTouchStart);
+    scrollText.addEventListener('touchstart', onTextTouchStart);
+
+    function openMediaPicker() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*,video/*';
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if(!file) return;
+            const url = URL.createObjectURL(file);
+            if(currentBgElement && currentBgElement.remove) currentBgElement.remove();
+            if(file.type.startsWith('image/')) {
+                const img = document.createElement('img');
+                img.src = url;
+                img.className = 'bg-media';
+                displayArea.insertBefore(img, displayArea.firstChild);
+                currentBgElement = img;
+            } else if(file.type.startsWith('video/')) {
+                const video = document.createElement('video');
+                video.src = url;
+                video.autoplay = true;
+                video.loop = true;
+                video.muted = true;
+                video.className = 'bg-media';
+                displayArea.insertBefore(video, displayArea.firstChild);
+                currentBgElement = video;
+                video.play();
+            }
+            statusMsg.innerText = "✅ ব্যাকগ্রাউন্ড সেট";
+            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত", 1500);
+        };
+        input.click();
+    }
+
     function setBeautyMode(mode) {
         currentBeautyMode = mode;
         const btns = ['beautyOff', 'beautySoft', 'beautySmooth', 'beautyGlow'];
         btns.forEach(btn => document.getElementById(btn).classList.remove('beauty-active'));
         document.getElementById(`beauty${mode.charAt(0).toUpperCase() + mode.slice(1)}`).classList.add('beauty-active');
-        
         switch(mode) {
-            case 'off':
-                videoElem.style.filter = "none";
-                statusMsg.innerText = "✨ বিউটি মোড: Off";
-                break;
-            case 'soft':
-                videoElem.style.filter = "brightness(1.05) contrast(1.05) blur(0.2px)";
-                statusMsg.innerText = "✨ বিউটি মোড: মৃদু";
-                break;
-            case 'smooth':
-                videoElem.style.filter = "brightness(1.1) contrast(1.1) blur(0.5px) saturate(1.05)";
-                statusMsg.innerText = "✨ বিউটি মোড: স্মুথ";
-                break;
-            case 'glow':
-                videoElem.style.filter = "brightness(1.15) contrast(1.15) blur(0.8px) saturate(1.1) drop-shadow(0 0 2px rgba(255,255,200,0.5))";
-                statusMsg.innerText = "✨ বিউটি মোড: গ্লো";
-                break;
+            case 'off': videoElem.style.filter = "none"; break;
+            case 'soft': videoElem.style.filter = "brightness(1.05) contrast(1.05) blur(0.2px)"; break;
+            case 'smooth': videoElem.style.filter = "brightness(1.1) contrast(1.1) blur(0.5px) saturate(1.05)"; break;
+            case 'glow': videoElem.style.filter = "brightness(1.15) contrast(1.15) blur(0.8px) saturate(1.1)"; break;
         }
-        setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | উন্নত বিউটি মোড", 1500);
     }
 
-    // অ্যাডজাস্ট ফাংশন
     function adjustTextSize(change) {
         let newVal = currentTextSize + change;
-        newVal = Math.min(60, Math.max(18, newVal));
+        newVal = Math.min(48, Math.max(16, newVal));
         textSizeRange.value = newVal;
         resizeText(newVal);
     }
-    
     function adjustCamSize(change) {
         let newVal = parseInt(camSizeRange.value) + change;
-        newVal = Math.min(500, Math.max(80, newVal));
+        newVal = Math.min(200, Math.max(70, newVal));
         camSizeRange.value = newVal;
         resizeCam(newVal);
     }
-    
     function adjustSpeed(change) {
         let newVal = parseFloat(speedRange.value) + change;
-        newVal = Math.min(15, Math.max(0.5, newVal));
+        newVal = Math.min(12, Math.max(0.5, newVal));
         speedRange.value = newVal;
         updateSpeed(newVal);
-    }
-    
-    function updateSpeed(val) {
-        speedValue.innerText = parseFloat(val).toFixed(1);
-        if(isAutoScrolling) {
-            // স্ক্রলিং চললে স্পিড আপডেট
+        if(isAutoScrolling && scrollInterval) {
+            clearInterval(scrollInterval);
+            scrollInterval = setInterval(() => {
+                if(isAutoScrolling) {
+                    currentY -= parseFloat(speedRange.value);
+                    scrollText.style.top = currentY + "px";
+                    if(currentY < -scrollText.offsetHeight) currentY = displayArea.offsetHeight;
+                }
+            }, 25);
         }
     }
-
-    function wrapText(ctx, text, maxWidth) {
-        const words = text.split(' ');
-        const lines = [];
-        let currentLine = '';
-        
-        for(let i = 0; i < words.length; i++) {
-            const word = words[i];
-            const testLine = currentLine ? currentLine + ' ' + word : word;
-            const metrics = ctx.measureText(testLine);
-            
-            if(metrics.width > maxWidth && currentLine !== '') {
-                lines.push(currentLine);
-                currentLine = word;
-            } else {
-                currentLine = testLine;
-            }
-        }
-        if(currentLine) lines.push(currentLine);
-        return lines;
-    }
-
+    function updateSpeed(val) { speedValue.innerText = parseFloat(val).toFixed(1); }
     function resizeText(value) {
         currentTextSize = parseInt(value);
-        const finalSize = Math.max(18, Math.min(60, currentTextSize));
-        scrollText.style.fontSize = finalSize + "px";
-        scrollText.style.lineHeight = (finalSize * 1.4) + "px";
-        textSizeValue.innerText = finalSize + "px";
+        scrollText.style.fontSize = currentTextSize + "px";
+        scrollText.style.lineHeight = (currentTextSize * 1.4) + "px";
+        textSizeValue.innerText = currentTextSize + "px";
     }
-
     function resizeCam(value) {
         const val = parseInt(value);
         videoCont.style.width = val + "px";
@@ -469,71 +797,24 @@
         camSizeValue.innerText = val + "px";
     }
 
-    function getAudioConstraints() {
-        return {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true,
-            sampleRate: 48000,
-            sampleSize: 16,
-            channelCount: 2
-        };
-    }
-
     function getMimeType() {
-        const mimeTypes = [
-            'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
-            'video/mp4',
-            'video/webm;codecs=vp9,opus',
-            'video/webm'
-        ];
-        for (let mime of mimeTypes) {
-            if (MediaRecorder.isTypeSupported(mime)) {
-                return mime;
-            }
-        }
+        const mimeTypes = ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4', 'video/webm'];
+        for (let mime of mimeTypes) if (MediaRecorder.isTypeSupported(mime)) return mime;
         return 'video/webm';
-    }
-
-    function getVideoConstraints() {
-        const constraints = { 
-            video: { facingMode: { exact: currentFacingMode } }, 
-            audio: getAudioConstraints()
-        };
-        if(currentResolution === 'fullhd') {
-            constraints.video.width = { ideal: 1920 };
-            constraints.video.height = { ideal: 1080 };
-            constraints.video.frameRate = { ideal: 30 };
-        } else {
-            constraints.video.width = { ideal: 1280 };
-            constraints.video.height = { ideal: 720 };
-            constraints.video.frameRate = { ideal: 30 };
-        }
-        return constraints;
     }
 
     function setResolution(type) {
         currentResolution = type;
         const btns = document.querySelectorAll('#dropdown-menu .setting-item:last-child .btn-inner');
         btns.forEach(btn => btn.classList.remove('active-btn'));
-        if(type === 'hd') {
-            btns[0].classList.add('active-btn');
-            statusMsg.innerText = "HD (720p)";
-        } else {
-            btns[1].classList.add('active-btn');
-            statusMsg.innerText = "Full HD (1080p)";
-        }
-        setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | উন্নত বিউটি মোড", 1500);
-        if(mediaStream) {
-            const wasOn = videoCont.style.display === "block";
-            if(wasOn) { toggleCamera(); setTimeout(() => toggleCamera(), 500); }
-        }
+        if(type === 'hd') btns[0].classList.add('active-btn');
+        else btns[1].classList.add('active-btn');
     }
 
     function makeDraggable(element) {
         let isDragging = false, startX, startY;
         const onMouseDown = (e) => {
-            e.preventDefault(); e.stopPropagation();
+            e.preventDefault();
             isDragging = true;
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
@@ -543,8 +824,8 @@
             element.style.right = 'auto';
             element.style.bottom = 'auto';
             document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('mouseup', onMouseUp);
             document.addEventListener('touchmove', onMouseMove, { passive: false });
+            document.addEventListener('mouseup', onMouseUp);
             document.addEventListener('touchend', onMouseUp);
         };
         const onMouseMove = (e) => {
@@ -562,8 +843,8 @@
         const onMouseUp = () => {
             isDragging = false;
             document.removeEventListener('mousemove', onMouseMove);
-            document.removeEventListener('mouseup', onMouseUp);
             document.removeEventListener('touchmove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
             document.removeEventListener('touchend', onMouseUp);
         };
         element.addEventListener('mousedown', onMouseDown);
@@ -571,35 +852,14 @@
     }
 
     async function switchCamera() {
-        if(!mediaStream) { alert("প্রথমে ক্যামেরা চালু করুন!"); return; }
-        currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
         if(mediaStream) mediaStream.getTracks().forEach(track => track.stop());
-        try {
-            const constraints = getVideoConstraints();
-            const stream = await navigator.mediaDevices.getUserMedia(constraints);
-            mediaStream = stream;
-            videoElem.srcObject = stream;
-            videoElem.style.transform = currentFacingMode === 'user' ? "scaleX(-1)" : "scaleX(1)";
-            setBeautyMode(currentBeautyMode);
-            const camName = currentFacingMode === 'user' ? 'সামনের' : 'পিছনের';
-            statusMsg.innerText = `✅ ${camName} ক্যামেরা`;
-            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | উন্নত বিউটি মোড", 1500);
-        } catch(err) { alert("ক্যামেরা পরিবর্তন করা যায়নি!"); }
-    }
-
-    function updateLiveText() {
-        let text = document.getElementById('inputText').value;
-        scrollText.innerText = text || "এখানে আপনার স্ক্রিপ্ট লিখুন...";
-        if(!isAutoScrolling) { 
-            currentY = 100; 
-            scrollText.style.top = currentY + "px"; 
-        }
-        scrollText.style.whiteSpace = "pre-wrap";
-        scrollText.style.wordBreak = "keep-all";
+        currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+        const success = await startCamera();
+        if(success) setBeautyMode(currentBeautyMode);
     }
 
     function refreshAndStartScroll() {
-        if(!document.getElementById('inputText').value) return alert("আগে স্ক্রিপ্ট লিখুন!");
+        if(!inputTextArea.value.trim()) return alert("আগে স্ক্রিপ্ট লিখুন!");
         currentY = displayArea.offsetHeight; 
         scrollText.style.top = currentY + "px";
         isAutoScrolling = true;
@@ -611,152 +871,79 @@
                 if(currentY < -scrollText.offsetHeight) currentY = displayArea.offsetHeight;
             }
         }, 25);
+        statusMsg.innerText = "▶️ স্ক্রলিং শুরু";
+        setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত", 1500);
     }
 
-    function dragTextStart(e) {
-        isAutoScrolling = false;
-        let ev = e.touches ? e.touches[0] : e;
-        let sY = ev.clientY - currentY;
-        function move(e) {
-            let ev2 = e.touches ? e.touches[0] : e;
-            currentY = ev2.clientY - sY;
-            scrollText.style.top = currentY + "px";
-        }
-        function stop() { 
-            document.removeEventListener('mousemove', move); 
-            document.removeEventListener('touchmove', move); 
-        }
-        document.addEventListener('mousemove', move); 
-        document.addEventListener('touchmove', move, {passive: false});
-        document.addEventListener('mouseup', stop); 
-        document.addEventListener('touchend', stop);
-    }
-
-    function toggleSettings() { menu.style.display = (menu.style.display === "block") ? "none" : "block"; }
-    function closeAllMenus() { menu.style.display = "none"; }
     function changeShape(s) { videoCont.style.borderRadius = s; }
 
     async function toggleCamera() {
         if(videoCont.style.display === "block") {
             videoCont.style.display = "none";
             if(mediaStream) { mediaStream.getTracks().forEach(track => track.stop()); mediaStream = null; }
-            statusMsg.innerText = "✅ ক্যামেরা বন্ধ";
-            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | উন্নত বিউটি মোড", 1500);
         } else {
             videoCont.style.display = "block";
-            try {
-                const constraints = getVideoConstraints();
-                const stream = await navigator.mediaDevices.getUserMedia(constraints);
-                mediaStream = stream;
-                videoElem.srcObject = stream;
-                videoElem.style.transform = currentFacingMode === 'user' ? "scaleX(-1)" : "scaleX(1)";
+            const success = await startCamera();
+            if(success) {
                 setBeautyMode(currentBeautyMode);
                 setTimeout(() => makeDraggable(videoCont), 100);
-                statusMsg.innerText = "✅ ক্যামেরা চালু";
-                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | উন্নত বিউটি মোড", 1500);
-            } catch(err) { alert("ক্যামেরা অ্যাক্সেস প্রয়োজন!"); videoCont.style.display = "none"; }
+            } else {
+                videoCont.style.display = "none";
+            }
         }
     }
 
     function updateTimerDisplay() {
-        if(activeRecordings === 0) {
-            timerDisplay.style.display = 'none';
-            return;
-        }
-        
+        if(activeRecordings === 0) { timerDisplay.style.display = 'none'; return; }
         let currentTime = 0;
-        if(isCameraRecording && !isCameraPaused) {
-            currentTime = Date.now() - cameraStartTime - cameraPausedDuration;
-        } 
-        else if(isTextRecording && !isTextPaused) {
-            currentTime = Date.now() - textStartTime - textPausedDuration;
-        }
-        
+        if(isCameraRecording && !isCameraPaused) currentTime = Date.now() - cameraStartTime - cameraPausedDuration;
+        else if(isTextRecording && !isTextPaused) currentTime = Date.now() - textStartTime - textPausedDuration;
         const h = Math.floor(currentTime / 3600000);
         const m = Math.floor((currentTime % 3600000) / 60000);
         const s = Math.floor((currentTime % 60000) / 1000);
         timerDisplay.innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
         timerDisplay.style.display = 'block';
     }
+    function startTimer() { if(timerInterval) clearInterval(timerInterval); timerInterval = setInterval(updateTimerDisplay, 200); }
+    function stopTimer() { if(timerInterval) clearInterval(timerInterval); if(activeRecordings === 0) timerDisplay.style.display = 'none'; }
 
-    function startTimer() {
-        if(timerInterval) clearInterval(timerInterval);
-        timerInterval = setInterval(updateTimerDisplay, 200);
-    }
-
-    function stopTimer() {
-        if(timerInterval) clearInterval(timerInterval);
-        if(activeRecordings === 0) timerDisplay.style.display = 'none';
-    }
-
-    // ক্যামেরা রেকর্ড
     async function toggleCameraRecording() {
         if(!mediaStream) { alert("ক্যামেরা অন করুন!"); return; }
-        
         if(!isCameraRecording) {
             cameraChunks = [];
-            const mimeType = getMimeType();
-            cameraRecorder = new MediaRecorder(mediaStream, { mimeType: mimeType });
+            cameraRecorder = new MediaRecorder(mediaStream, { mimeType: getMimeType() });
             cameraRecorder.ondataavailable = e => { if(e.data.size > 0) cameraChunks.push(e.data); };
             cameraRecorder.onstop = () => {
                 const blob = new Blob(cameraChunks, { type: 'video/mp4' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                const timestamp = new Date().toISOString().slice(0,19).replace(/:/g, '-');
-                const camType = currentFacingMode === 'user' ? 'front' : 'back';
-                a.download = `camera_${camType}_${timestamp}.mp4`;
-                document.body.appendChild(a);
+                a.download = `camera_${Date.now()}.mp4`;
                 a.click();
-                document.body.removeChild(a);
                 URL.revokeObjectURL(url);
-                statusMsg.innerText = "✅ ক্যামেরা MP4 সেভ হয়েছে";
-                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | উন্নত বিউটি মোড", 1500);
-                cameraChunks = [];
-                isCameraRecording = false;
-                isCameraPaused = false;
-                activeRecordings--;
-                if(activeRecordings === 0) stopTimer();
-                updateButtonStyles();
+                cameraChunks = []; isCameraRecording = false; isCameraPaused = false; activeRecordings--; if(activeRecordings === 0) stopTimer(); updateButtonStyles();
+                statusMsg.innerText = "💾 ক্যামেরা ভিডিও সংরক্ষিত";
+                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত", 2000);
             };
             cameraRecorder.start(1000);
-            isCameraRecording = true;
-            isCameraPaused = false;
-            cameraStartTime = Date.now();
-            cameraPausedDuration = 0;
-            activeRecordings++;
-            startTimer();
+            isCameraRecording = true; cameraStartTime = Date.now(); cameraPausedDuration = 0;
+            activeRecordings++; startTimer();
             camRecBtn.classList.add('recording-active');
-            statusMsg.innerText = "📹 ক্যামেরা রেকর্ডিং চলছে...";
         } else {
             if(!isCameraPaused) {
-                if(cameraRecorder && cameraRecorder.state === "recording") {
-                    cameraRecorder.pause();
-                }
-                isCameraPaused = true;
-                cameraCurrentPauseStart = Date.now();
-                camRecBtn.classList.add('paused-state');
-                camRecBtn.classList.remove('recording-active');
-                statusMsg.innerText = "⏸️ ক্যামেরা পজ";
+                cameraRecorder.pause();
+                isCameraPaused = true; cameraCurrentPauseStart = Date.now();
+                camRecBtn.classList.add('paused-state'); camRecBtn.classList.remove('recording-active');
             } else {
-                if(cameraRecorder && cameraRecorder.state === "paused") {
-                    cameraRecorder.resume();
-                }
-                if(cameraCurrentPauseStart > 0) {
-                    cameraPausedDuration += (Date.now() - cameraCurrentPauseStart);
-                    cameraCurrentPauseStart = 0;
-                }
+                cameraRecorder.resume();
+                if(cameraCurrentPauseStart > 0) cameraPausedDuration += (Date.now() - cameraCurrentPauseStart);
                 isCameraPaused = false;
-                camRecBtn.classList.remove('paused-state');
-                camRecBtn.classList.add('recording-active');
-                statusMsg.innerText = "▶️ ক্যামেরা রিজিউম";
+                camRecBtn.classList.remove('paused-state'); camRecBtn.classList.add('recording-active');
             }
-            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | উন্নত বিউটি মোড", 1500);
         }
         updateButtonStyles();
     }
 
-    // টেক্সট রেকর্ড
     async function toggleTextRecording() {
         if(!isTextRecording) {
             textChunks = [];
@@ -767,75 +954,50 @@
                 textCanvas.style.left = '-1000px';
                 document.body.appendChild(textCanvas);
             }
-            
-            function drawTextFrame() {
+            function drawFrame() {
                 if(!textCanvas) return;
-                const newRect = displayArea.getBoundingClientRect();
-                if(textCanvas.width !== newRect.width || textCanvas.height !== newRect.height) {
-                    textCanvas.width = newRect.width;
-                    textCanvas.height = newRect.height;
+                const rect = displayArea.getBoundingClientRect();
+                if(textCanvas.width !== rect.width || textCanvas.height !== rect.height) {
+                    textCanvas.width = rect.width;
+                    textCanvas.height = rect.height;
                 }
                 const ctx = textCanvas.getContext('2d');
                 ctx.clearRect(0, 0, textCanvas.width, textCanvas.height);
                 ctx.fillStyle = "#000";
                 ctx.fillRect(0, 0, textCanvas.width, textCanvas.height);
-                
+                if(currentBgElement) { try { ctx.drawImage(currentBgElement, 0, 0, textCanvas.width, textCanvas.height); } catch(e) {} }
                 const textDiv = scrollText;
                 const textRect = textDiv.getBoundingClientRect();
-                const textY = textRect.top - newRect.top;
+                const textY = textRect.top - rect.top;
                 const cs = window.getComputedStyle(textDiv);
-                
-                const fullText = textDiv.innerText;
-                const originalLines = fullText.split('\n');
-                
                 const fontSize = parseInt(cs.fontSize);
                 const lineHeight = fontSize * 1.4;
-                const fontFamily = cs.fontFamily;
-                
-                ctx.font = `${fontSize}px ${fontFamily}`;
+                ctx.font = `${fontSize}px ${cs.fontFamily}`;
                 ctx.fillStyle = cs.color;
                 ctx.textAlign = "center";
-                ctx.shadowBlur = 2;
+                ctx.shadowBlur = 3;
                 ctx.shadowColor = "black";
-                
+                const fullText = textDiv.innerText;
+                const lines = fullText.split('\n');
                 const maxWidth = textCanvas.width - 60;
                 let currentYPos = textY;
-                
-                for(let lineIndex = 0; lineIndex < originalLines.length; lineIndex++) {
-                    let line = originalLines[lineIndex];
+                for(let line of lines) {
                     const words = line.split(' ');
-                    let currentLine = '';
-                    let wrappedLines = [];
-                    
-                    for(let i = 0; i < words.length; i++) {
-                        const word = words[i];
-                        const testLine = currentLine ? currentLine + ' ' + word : word;
-                        const metrics = ctx.measureText(testLine);
-                        
-                        if(metrics.width > maxWidth && currentLine !== '') {
-                            wrappedLines.push(currentLine);
-                            currentLine = word;
-                        } else {
-                            currentLine = testLine;
-                        }
+                    let currentLine = '', wrapped = [];
+                    for(let w of words) {
+                        let test = currentLine ? currentLine + ' ' + w : w;
+                        if(ctx.measureText(test).width > maxWidth && currentLine) { wrapped.push(currentLine); currentLine = w; }
+                        else currentLine = test;
                     }
-                    if(currentLine) wrappedLines.push(currentLine);
-                    
-                    for(let w = 0; w < wrappedLines.length; w++) {
-                        const yPos = currentYPos + (w * lineHeight) + fontSize;
-                        ctx.fillText(wrappedLines[w], textCanvas.width / 2, yPos);
-                    }
-                    currentYPos += (wrappedLines.length * lineHeight);
+                    if(currentLine) wrapped.push(currentLine);
+                    for(let i=0; i<wrapped.length; i++) ctx.fillText(wrapped[i], textCanvas.width/2, currentYPos + (i * lineHeight) + fontSize);
+                    currentYPos += wrapped.length * lineHeight;
                 }
-                
-                textAnimationId = requestAnimationFrame(drawTextFrame);
+                textAnimationId = requestAnimationFrame(drawFrame);
             }
-            
-            drawTextFrame();
-            
+            drawFrame();
             textStream = textCanvas.captureStream(30);
-            const mimeType = getMimeType();
-            textRecorder = new MediaRecorder(textStream, { mimeType: mimeType });
+            textRecorder = new MediaRecorder(textStream, { mimeType: getMimeType() });
             textRecorder.ondataavailable = e => { if(e.data.size > 0) textChunks.push(e.data); };
             textRecorder.onstop = () => {
                 if(textAnimationId) cancelAnimationFrame(textAnimationId);
@@ -843,114 +1005,67 @@
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `text_scroll_${Date.now()}.mp4`;
-                document.body.appendChild(a);
+                a.download = `text_${Date.now()}.mp4`;
                 a.click();
-                document.body.removeChild(a);
                 URL.revokeObjectURL(url);
-                statusMsg.innerText = "✅ টেক্সট MP4 সেভ হয়েছে";
-                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | উন্নত বিউটি মোড", 1500);
-                textChunks = [];
-                isTextRecording = false;
-                isTextPaused = false;
-                activeRecordings--;
-                if(activeRecordings === 0) stopTimer();
+                textChunks = []; isTextRecording = false; isTextPaused = false;
+                activeRecordings--; if(activeRecordings === 0) stopTimer();
                 updateButtonStyles();
+                statusMsg.innerText = "💾 টেক্সট ভিডিও সংরক্ষিত";
+                setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত", 2000);
             };
             textRecorder.start(1000);
-            isTextRecording = true;
-            isTextPaused = false;
-            textStartTime = Date.now();
-            textPausedDuration = 0;
-            activeRecordings++;
-            startTimer();
+            isTextRecording = true; textStartTime = Date.now(); textPausedDuration = 0;
+            activeRecordings++; startTimer();
             textRecBtn.classList.add('recording-active');
-            statusMsg.innerText = "📝 টেক্সট রেকর্ডিং চলছে...";
         } else {
             if(!isTextPaused) {
-                if(textRecorder && textRecorder.state === "recording") {
-                    textRecorder.pause();
-                }
-                isTextPaused = true;
-                textCurrentPauseStart = Date.now();
-                textRecBtn.classList.add('paused-state');
-                textRecBtn.classList.remove('recording-active');
-                statusMsg.innerText = "⏸️ টেক্সট পজ";
+                textRecorder.pause();
+                isTextPaused = true; textCurrentPauseStart = Date.now();
+                textRecBtn.classList.add('paused-state'); textRecBtn.classList.remove('recording-active');
             } else {
-                if(textRecorder && textRecorder.state === "paused") {
-                    textRecorder.resume();
-                }
-                if(textCurrentPauseStart > 0) {
-                    textPausedDuration += (Date.now() - textCurrentPauseStart);
-                    textCurrentPauseStart = 0;
-                }
+                textRecorder.resume();
+                if(textCurrentPauseStart > 0) textPausedDuration += (Date.now() - textCurrentPauseStart);
                 isTextPaused = false;
-                textRecBtn.classList.remove('paused-state');
-                textRecBtn.classList.add('recording-active');
-                statusMsg.innerText = "▶️ টেক্সট রিজিউম";
+                textRecBtn.classList.remove('paused-state'); textRecBtn.classList.add('recording-active');
             }
-            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত | উন্নত বিউটি মোড", 1500);
         }
         updateButtonStyles();
     }
     
     function stopRecording() {
         let stopped = false;
-        if(isCameraRecording && cameraRecorder && (cameraRecorder.state === "recording" || cameraRecorder.state === "paused")) {
-            cameraRecorder.stop();
-            stopped = true;
-        }
-        if(isTextRecording && textRecorder && (textRecorder.state === "recording" || textRecorder.state === "paused")) {
-            textRecorder.stop();
-            stopped = true;
-        }
-        if(stopped) {
-            statusMsg.innerText = "💾 MP4 সংরক্ষণ করা হচ্ছে...";
-        } else {
-            alert("কোনো রেকর্ডিং নেই!");
-        }
+        if(isCameraRecording && cameraRecorder && (cameraRecorder.state === "recording" || cameraRecorder.state === "paused")) { cameraRecorder.stop(); stopped = true; }
+        if(isTextRecording && textRecorder && (textRecorder.state === "recording" || textRecorder.state === "paused")) { textRecorder.stop(); stopped = true; }
+        if(stopped) statusMsg.innerText = "💾 সংরক্ষণ করা হচ্ছে...";
+        else alert("কোনো রেকর্ডিং নেই!");
     }
     
     function updateButtonStyles() {
         if(isCameraRecording) {
-            if(isCameraPaused) {
-                camRecBtn.classList.add('paused-state');
-                camRecBtn.classList.remove('recording-active');
-            } else {
-                camRecBtn.classList.add('recording-active');
-                camRecBtn.classList.remove('paused-state');
-            }
-        } else {
-            camRecBtn.classList.remove('recording-active');
-            camRecBtn.classList.remove('paused-state');
-        }
-        
+            if(isCameraPaused) { camRecBtn.classList.add('paused-state'); camRecBtn.classList.remove('recording-active'); }
+            else { camRecBtn.classList.add('recording-active'); camRecBtn.classList.remove('paused-state'); }
+        } else { camRecBtn.classList.remove('recording-active'); camRecBtn.classList.remove('paused-state'); }
         if(isTextRecording) {
-            if(isTextPaused) {
-                textRecBtn.classList.add('paused-state');
-                textRecBtn.classList.remove('recording-active');
-            } else {
-                textRecBtn.classList.add('recording-active');
-                textRecBtn.classList.remove('paused-state');
-            }
-        } else {
-            textRecBtn.classList.remove('recording-active');
-            textRecBtn.classList.remove('paused-state');
-        }
+            if(isTextPaused) { textRecBtn.classList.add('paused-state'); textRecBtn.classList.remove('recording-active'); }
+            else { textRecBtn.classList.add('recording-active'); textRecBtn.classList.remove('paused-state'); }
+        } else { textRecBtn.classList.remove('recording-active'); textRecBtn.classList.remove('paused-state'); }
     }
     
-    // ইনিশিয়ালাইজ
-    resizeText(32);
-    resizeCam(150);
+    // Initialize
+    resizeText(24);
+    resizeCam(100);
     updateSpeed(2);
+    setTextPosition(25);
     updateLiveText();
     setBeautyMode('off');
-    
+    changeTextColor('#ffffff');
     setTimeout(() => {
         videoCont.style.left = 'auto';
-        videoCont.style.right = '20px';
-        videoCont.style.top = '180px';
+        videoCont.style.right = '15px';
+        videoCont.style.bottom = '100px';
+        videoCont.style.top = 'auto';
     }, 100);
 </script>
 </body>
-                        </html>
+    </html>
