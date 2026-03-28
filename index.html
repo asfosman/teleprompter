@@ -80,7 +80,7 @@
         }
         .open-source-btn:active { transform: scale(0.96); }
 
-        /* ডান সাইডের সেটিংস মেনু */
+        /* ডান সাইডের সেটিংস মেনু - ফিক্সড স্ক্রলিং */
         #dropdown-menu {
             display: none;
             position: fixed;
@@ -94,7 +94,9 @@
             padding: 20px 16px;
             z-index: 10000;
             overflow-y: auto;
+            overflow-x: hidden;
             border-left: 2px solid #ff4757;
+            -webkit-overflow-scrolling: touch;
         }
         
         #dropdown-menu::-webkit-scrollbar {
@@ -116,6 +118,10 @@
             margin-bottom: 20px;
             padding-bottom: 10px;
             border-bottom: 1px solid #333;
+            position: sticky;
+            top: 0;
+            background: #121212;
+            z-index: 10;
         }
         .settings-header h3 {
             margin: 0;
@@ -138,14 +144,18 @@
         }
         .close-settings:active { transform: scale(0.92); background: #ff4757; }
         
+        .settings-content {
+            padding-bottom: 30px;
+        }
+        
         .setting-item {
-            margin-bottom: 18px;
+            margin-bottom: 20px;
             border-bottom: 1px solid #2a2a2a;
-            padding-bottom: 12px;
+            padding-bottom: 15px;
         }
         .setting-label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             font-size: 13px;
             color: #ddd;
             font-weight: bold;
@@ -182,6 +192,7 @@
             font-weight: bold;
             cursor: pointer;
             color: white;
+            transition: 0.1s;
         }
         .minus-btn:active, .plus-btn:active {
             transform: scale(0.92);
@@ -320,6 +331,7 @@
             background: rgba(0,0,0,0.7);
             padding: 4px 12px;
             border-radius: 30px;
+            display: none;
         }
         .rec-btn {
             width: 52px;
@@ -357,7 +369,8 @@
         .btn-blue { background: #007bff; }
         .btn-green { background: #28a745; }
         .btn-gray { background: #555; width: auto; padding: 6px 16px; }
-        .btn-inner { background: #444; flex: 1; padding: 5px 8px; font-size: 11px; border-radius: 20px; }
+        .btn-inner { background: #444; flex: 1; padding: 5px 8px; font-size: 11px; border-radius: 20px; cursor: pointer; }
+        .btn-inner:active { transform: scale(0.95); }
         .active-btn { background: #f39c12 !important; }
         input[type="range"] {
             width: 100%;
@@ -390,6 +403,7 @@
             cursor: pointer;
             border: none;
         }
+        .cam-switch-setting:active { transform: scale(0.98); }
         
         .beauty-btns {
             display: flex;
@@ -403,7 +417,9 @@
             border-radius: 25px;
             font-size: 12px;
             cursor: pointer;
+            transition: 0.1s;
         }
+        .beauty-btn:active { transform: scale(0.95); }
         .beauty-active { background: #f39c12; color: #111; font-weight: bold; }
         
         .text-size-info {
@@ -433,6 +449,13 @@
             .status-msg { font-size: 10px; bottom: 85px; }
             #timer { font-size: 14px; }
             textarea { height: 42px; font-size: 12px; }
+            .setting-item { margin-bottom: 15px; }
+        }
+        
+        @media (max-height: 600px) {
+            #dropdown-menu { padding: 12px; }
+            .setting-item { margin-bottom: 12px; padding-bottom: 10px; }
+            .settings-header { margin-bottom: 12px; }
         }
     </style>
 </head>
@@ -474,76 +497,78 @@
         <h3>⚙️ কন্ট্রোল স্টুডিও</h3>
         <button class="close-settings" onclick="closeSettingsPanel()">✕</button>
     </div>
-    <div class="setting-item">
-        <span class="setting-label">📷 ক্যামেরা নির্বাচন</span>
-        <button class="cam-switch-setting" onclick="switchCamera()">🔄 ক্যামেরা পাল্টান</button>
-    </div>
-    <div class="setting-item">
-        <span class="setting-label">✨ বিউটি মোড</span>
-        <div class="beauty-btns">
-            <div id="beautyOff" class="beauty-btn beauty-active" onclick="setBeautyMode('off')">Off</div>
-            <div id="beautySoft" class="beauty-btn" onclick="setBeautyMode('soft')">মৃদু</div>
-            <div id="beautySmooth" class="beauty-btn" onclick="setBeautyMode('smooth')">স্মুথ</div>
-            <div id="beautyGlow" class="beauty-btn" onclick="setBeautyMode('glow')">গ্লো</div>
+    <div class="settings-content">
+        <div class="setting-item">
+            <span class="setting-label">📷 ক্যামেরা নির্বাচন</span>
+            <button class="cam-switch-setting" onclick="switchCamera()">🔄 ক্যামেরা পাল্টান</button>
         </div>
-    </div>
-    <div class="setting-item">
-        <span class="setting-label">📐 ক্যামেরা শেপ</span>
-        <div class="btn-group">
-            <button class="btn-inner" onclick="changeShape('50%')">গোল</button>
-            <button class="btn-inner" onclick="changeShape('12px')">চৌকো</button>
+        <div class="setting-item">
+            <span class="setting-label">✨ বিউটি মোড</span>
+            <div class="beauty-btns">
+                <div id="beautyOff" class="beauty-btn beauty-active" onclick="setBeautyMode('off')">Off</div>
+                <div id="beautySoft" class="beauty-btn" onclick="setBeautyMode('soft')">মৃদু</div>
+                <div id="beautySmooth" class="beauty-btn" onclick="setBeautyMode('smooth')">স্মুথ</div>
+                <div id="beautyGlow" class="beauty-btn" onclick="setBeautyMode('glow')">গ্লো</div>
+            </div>
         </div>
-    </div>
-    <div class="setting-item">
-        <span class="setting-label">📝 টেক্সট সাইজ</span>
-        <div class="control-group">
-            <button class="minus-btn" onclick="adjustTextSize(-2)">−</button>
-            <input type="range" id="textSizeRange" min="16" max="48" value="24" oninput="resizeText(this.value)">
-            <span class="control-value" id="textSizeValue">24px</span>
-            <button class="plus-btn" onclick="adjustTextSize(2)">+</button>
+        <div class="setting-item">
+            <span class="setting-label">📐 ক্যামেরা শেপ</span>
+            <div class="btn-group">
+                <button class="btn-inner" onclick="changeShape('50%')">গোল</button>
+                <button class="btn-inner" onclick="changeShape('12px')">চৌকো</button>
+            </div>
         </div>
-    </div>
-    <div class="setting-item">
-        <span class="setting-label">🎨 টেক্সট কালার</span>
-        <div class="color-group">
-            <input type="color" id="textColorPicker" value="#ffffff" onchange="changeTextColor(this.value)">
-            <div class="color-preview" id="colorPreview" style="background:#ffffff" onclick="document.getElementById('textColorPicker').click()"></div>
-            <span style="font-size:11px;">রং নির্বাচন</span>
+        <div class="setting-item">
+            <span class="setting-label">📝 টেক্সট সাইজ</span>
+            <div class="control-group">
+                <button class="minus-btn" onclick="adjustTextSize(-2)">−</button>
+                <input type="range" id="textSizeRange" min="16" max="48" value="24" oninput="resizeText(this.value)">
+                <span class="control-value" id="textSizeValue">24px</span>
+                <button class="plus-btn" onclick="adjustTextSize(2)">+</button>
+            </div>
         </div>
-    </div>
-    <div class="setting-item">
-        <span class="setting-label">📍 টেক্সট পজিশন</span>
-        <div class="control-group">
-            <button class="minus-btn" onclick="adjustTextPosition(-5)">←</button>
-            <input type="range" id="textPositionRange" min="15" max="85" value="25" oninput="setTextPosition(this.value)">
-            <span class="control-value" id="textPositionValue">25%</span>
-            <button class="plus-btn" onclick="adjustTextPosition(5)">→</button>
+        <div class="setting-item">
+            <span class="setting-label">🎨 টেক্সট কালার</span>
+            <div class="color-group">
+                <input type="color" id="textColorPicker" value="#ffffff" onchange="changeTextColor(this.value)">
+                <div class="color-preview" id="colorPreview" style="background:#ffffff" onclick="document.getElementById('textColorPicker').click()"></div>
+                <span style="font-size:11px;">রং নির্বাচন</span>
+            </div>
         </div>
-        <div class="text-size-info">অর্ধেক স্ক্রিনের মধ্যে থাকবে</div>
-    </div>
-    <div class="setting-item">
-        <span class="setting-label">📷 ক্যামেরা সাইজ</span>
-        <div class="control-group">
-            <button class="minus-btn" onclick="adjustCamSize(-5)">−</button>
-            <input type="range" id="camSizeRange" min="70" max="200" value="100" oninput="resizeCam(this.value)">
-            <span class="control-value" id="camSizeValue">100px</span>
-            <button class="plus-btn" onclick="adjustCamSize(5)">+</button>
+        <div class="setting-item">
+            <span class="setting-label">📍 টেক্সট পজিশন</span>
+            <div class="control-group">
+                <button class="minus-btn" onclick="adjustTextPosition(-5)">←</button>
+                <input type="range" id="textPositionRange" min="15" max="85" value="25" oninput="setTextPosition(this.value)">
+                <span class="control-value" id="textPositionValue">25%</span>
+                <button class="plus-btn" onclick="adjustTextPosition(5)">→</button>
+            </div>
+            <div class="text-size-info">অর্ধেক স্ক্রিনের মধ্যে থাকবে</div>
         </div>
-    </div>
-    <div class="setting-item">
-        <span class="setting-label">⚡ স্ক্রলিং গতি</span>
-        <div class="control-group">
-            <button class="minus-btn" onclick="adjustSpeed(-0.5)">−</button>
-            <input type="range" id="speedRange" min="0.5" max="12" step="0.5" value="2" oninput="updateSpeed(this.value)">
-            <span class="control-value" id="speedValue">2.0</span>
-            <button class="plus-btn" onclick="adjustSpeed(0.5)">+</button>
+        <div class="setting-item">
+            <span class="setting-label">📷 ক্যামেরা সাইজ</span>
+            <div class="control-group">
+                <button class="minus-btn" onclick="adjustCamSize(-5)">−</button>
+                <input type="range" id="camSizeRange" min="70" max="200" value="100" oninput="resizeCam(this.value)">
+                <span class="control-value" id="camSizeValue">100px</span>
+                <button class="plus-btn" onclick="adjustCamSize(5)">+</button>
+            </div>
         </div>
-    </div>
-    <div class="setting-item">
-        <span class="setting-label">🎬 রেজুলেশন</span>
-        <div class="btn-group">
-            <button class="btn-inner" onclick="setResolution('hd')">HD (720p)</button>
-            <button class="btn-inner active-btn" onclick="setResolution('fullhd')">Full HD</button>
+        <div class="setting-item">
+            <span class="setting-label">⚡ স্ক্রলিং গতি</span>
+            <div class="control-group">
+                <button class="minus-btn" onclick="adjustSpeed(-0.5)">−</button>
+                <input type="range" id="speedRange" min="0.5" max="12" step="0.5" value="2" oninput="updateSpeed(this.value)">
+                <span class="control-value" id="speedValue">2.0</span>
+                <button class="plus-btn" onclick="adjustSpeed(0.5)">+</button>
+            </div>
+        </div>
+        <div class="setting-item">
+            <span class="setting-label">🎬 রেজুলেশন</span>
+            <div class="btn-group">
+                <button class="btn-inner" onclick="setResolution('hd')">HD (720p)</button>
+                <button class="btn-inner active-btn" onclick="setResolution('fullhd')">Full HD</button>
+            </div>
         </div>
     </div>
 </div>
@@ -594,7 +619,7 @@
     let timerInterval = null;
     let activeRecordings = 0;
 
-    // টেক্সট আপডেট ফাংশন - এটাই মূল ফিক্স
+    // টেক্সট আপডেট ফাংশন
     function updateLiveText() {
         let text = inputTextArea.value;
         if(text.trim() === "") {
@@ -602,21 +627,18 @@
         } else {
             scrollText.innerText = text;
         }
-        // স্ক্রলিং না থাকলে পজিশন ঠিক রাখা
         if(!isAutoScrolling) { 
             currentY = 100; 
             scrollText.style.top = currentY + "px"; 
         }
     }
     
-    // ইনপুট ইভেন্ট লিসেনার
     inputTextArea.addEventListener('input', updateLiveText);
     inputTextArea.addEventListener('keyup', updateLiveText);
-    inputTextArea.addEventListener('change', updateLiveText);
 
     // সেটিংস ফাংশন
     function toggleSettings() {
-        if (menu.style.display === "flex" || menu.style.display === "block") {
+        if (menu.style.display === "block") {
             closeSettingsPanel();
         } else {
             openSettingsPanel();
@@ -626,6 +648,10 @@
     function openSettingsPanel() {
         menu.style.display = "block";
         overlay.style.display = "block";
+        // সেটিংস প্যানেল খোলার সময় স্ক্রল টপ রিসেট করা (যদি প্রয়োজন হয়)
+        setTimeout(() => {
+            menu.scrollTop = 0;
+        }, 10);
     }
     
     function closeSettingsPanel() {
@@ -859,7 +885,10 @@
     }
 
     function refreshAndStartScroll() {
-        if(!inputTextArea.value.trim()) return alert("আগে স্ক্রিপ্ট লিখুন!");
+        if(!inputTextArea.value.trim()) {
+            alert("আগে স্ক্রিপ্ট লিখুন!");
+            return;
+        }
         currentY = displayArea.offsetHeight; 
         scrollText.style.top = currentY + "px";
         isAutoScrolling = true;
@@ -1068,4 +1097,4 @@
     }, 100);
 </script>
 </body>
-    </html>
+                    </html>
