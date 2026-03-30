@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>AI প্রো টেলিপম্পটার - ডান সাইড সেটিংস</title>
+    <title>AI প্রো টেলিপম্পটার</title>
     <style>
         * {
             user-select: none;
@@ -80,7 +80,6 @@
         }
         .open-source-btn:active { transform: scale(0.96); }
 
-        /* ডান সাইডের সেটিংস মেনু - ফিক্সড স্ক্রলিং */
         #dropdown-menu {
             display: none;
             position: fixed;
@@ -96,7 +95,6 @@
             overflow-y: auto;
             overflow-x: hidden;
             border-left: 2px solid #ff4757;
-            -webkit-overflow-scrolling: touch;
         }
         
         #dropdown-menu::-webkit-scrollbar {
@@ -275,6 +273,7 @@
             background: #000;
             width: 100%;
         }
+        
         .bg-media {
             position: absolute;
             top: 0;
@@ -284,10 +283,36 @@
             object-fit: cover;
             z-index: 0;
             pointer-events: none;
+            animation: zoomInOut 8s ease-in-out infinite;
         }
+        
+        @keyframes zoomInOut {
+            0% { transform: scale(1); opacity: 0.95; }
+            50% { transform: scale(1.08); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.95; }
+        }
+        
+        .bg-media-video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 0;
+            pointer-events: none;
+            animation: subtleZoom 10s ease-in-out infinite;
+        }
+        
+        @keyframes subtleZoom {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
         #scrolling-text {
             position: absolute;
-            width: 50%;
+            width: 35%;
             max-width: 280px;
             text-align: center;
             font-size: 24px;
@@ -304,6 +329,7 @@
             padding: 0;
             background: transparent;
             touch-action: none;
+            transition: left 0.05s ease-out;
         }
         #scrolling-text:active {
             cursor: grabbing;
@@ -444,18 +470,12 @@
             #dropdown-menu { width: 75%; max-width: 280px; }
             .rec-container { gap: 10px; padding: 6px 15px; }
             .rec-btn { width: 48px; height: 48px; font-size: 22px; }
-            #scrolling-text { width: 55%; font-size: 20px; }
+            #scrolling-text { width: 40%; font-size: 20px; }
             #video-container { width: 90px; height: 90px; bottom: 90px; }
             .status-msg { font-size: 10px; bottom: 85px; }
             #timer { font-size: 14px; }
             textarea { height: 42px; font-size: 12px; }
             .setting-item { margin-bottom: 15px; }
-        }
-        
-        @media (max-height: 600px) {
-            #dropdown-menu { padding: 12px; }
-            .setting-item { margin-bottom: 12px; padding-bottom: 10px; }
-            .settings-header { margin-bottom: 12px; }
         }
     </style>
 </head>
@@ -466,7 +486,7 @@
         <div class="main-buttons">
             <div class="open-source-btn" onclick="openMediaPicker()">📁 ওপেন সোর্স</div>
             <button class="btn-blue" onclick="refreshAndStartScroll()">শুরু</button>
-            <button class="btn-green" onclick="toggleCamera()">📷 ক্যামেরা</button>
+            <button class="btn-green" id="cameraBtn" onclick="toggleCamera()">📷 ক্যামেরা</button>
             <button class="btn-gray" onclick="toggleSettings()">⚙️ সেটিংস</button>
         </div>
     </div>
@@ -536,14 +556,14 @@
             </div>
         </div>
         <div class="setting-item">
-            <span class="setting-label">📍 টেক্সট পজিশন</span>
+            <span class="setting-label">📍 টেক্সট পজিশন (বাম: 0-35% | ডান: 65-100%)</span>
             <div class="control-group">
-                <button class="minus-btn" onclick="adjustTextPosition(-5)">←</button>
-                <input type="range" id="textPositionRange" min="15" max="85" value="25" oninput="setTextPosition(this.value)">
-                <span class="control-value" id="textPositionValue">25%</span>
-                <button class="plus-btn" onclick="adjustTextPosition(5)">→</button>
+                <button class="minus-btn" onclick="adjustTextPosition(-3)">←</button>
+                <input type="range" id="textPositionRange" min="0" max="100" value="0" oninput="setTextPosition(this.value)">
+                <span class="control-value" id="textPositionValue">0% (বাম)</span>
+                <button class="plus-btn" onclick="adjustTextPosition(3)">→</button>
             </div>
-            <div class="text-size-info">অর্ধেক স্ক্রিনের মধ্যে থাকবে</div>
+            <div class="text-size-info">বাম দিকে: 0-35% | ডান দিকে: 65-100%</div>
         </div>
         <div class="setting-item">
             <span class="setting-label">📷 ক্যামেরা সাইজ</span>
@@ -596,6 +616,7 @@
     const textColorPicker = document.getElementById('textColorPicker');
     const colorPreview = document.getElementById('colorPreview');
     const statusMsg = document.getElementById('statusMsg');
+    const cameraBtn = document.getElementById('cameraBtn');
 
     // Variables
     let scrollInterval, isAutoScrolling = false, currentY = 100;
@@ -605,9 +626,11 @@
     let currentTextSize = 24;
     let currentBeautyMode = 'off';
     let currentBgElement = null;
+    let isCameraActive = false;
     
     let isDraggingText = false;
     let dragStartY = 0, dragStartTop = 0;
+    let dragStartX = 0, dragStartLeft = 0;
     
     let cameraRecorder = null, cameraChunks = [], isCameraRecording = false, isCameraPaused = false;
     let textRecorder = null, textChunks = [], isTextRecording = false, isTextPaused = false;
@@ -619,7 +642,6 @@
     let timerInterval = null;
     let activeRecordings = 0;
 
-    // টেক্সট আপডেট ফাংশন
     function updateLiveText() {
         let text = inputTextArea.value;
         if(text.trim() === "") {
@@ -636,7 +658,6 @@
     inputTextArea.addEventListener('input', updateLiveText);
     inputTextArea.addEventListener('keyup', updateLiveText);
 
-    // সেটিংস ফাংশন
     function toggleSettings() {
         if (menu.style.display === "block") {
             closeSettingsPanel();
@@ -648,7 +669,6 @@
     function openSettingsPanel() {
         menu.style.display = "block";
         overlay.style.display = "block";
-        // সেটিংস প্যানেল খোলার সময় স্ক্রল টপ রিসেট করা (যদি প্রয়োজন হয়)
         setTimeout(() => {
             menu.scrollTop = 0;
         }, 10);
@@ -659,22 +679,48 @@
         overlay.style.display = "none";
     }
     
-    // Camera functions
+    // ক্যামেরা ফাংশন - সিম্পল এবং কাজ করবে
     async function startCamera() {
         try {
+            statusMsg.innerText = "📷 ক্যামেরা চালু হচ্ছে...";
+            
             const constraints = {
-                video: { facingMode: currentFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
+                video: true,
                 audio: true
             };
+            
             const stream = await navigator.mediaDevices.getUserMedia(constraints);
             videoElem.srcObject = stream;
             mediaStream = stream;
-            videoElem.style.transform = currentFacingMode === 'user' ? "scaleX(-1)" : "scaleX(1)";
+            isCameraActive = true;
+            
+            statusMsg.innerText = "✅ ক্যামেরা চালু হয়েছে";
+            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত", 2000);
             return true;
         } catch(err) {
-            alert("📷 ক্যামেরা চালু করতে সমস্যা!\n\nঅনুমতি দিন এবং পৃষ্ঠাটি রিফ্রেশ করুন।");
+            console.error("Camera error:", err);
+            let errorMsg = "ক্যামেরা চালু করতে সমস্যা!\n";
+            if (err.name === 'NotAllowedError') {
+                errorMsg += "অনুগ্রহ করে ক্যামেরা অনুমতি দিন।";
+            } else if (err.name === 'NotFoundError') {
+                errorMsg += "আপনার ডিভাইসে ক্যামেরা নেই।";
+            } else {
+                errorMsg += err.message;
+            }
+            alert(errorMsg);
+            statusMsg.innerText = "❌ ক্যামেরা চালু হয়নি";
+            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত", 3000);
             return false;
         }
+    }
+
+    function stopCamera() {
+        if (mediaStream) {
+            mediaStream.getTracks().forEach(track => track.stop());
+            mediaStream = null;
+        }
+        videoElem.srcObject = null;
+        isCameraActive = false;
     }
 
     function changeTextColor(color) {
@@ -685,28 +731,61 @@
 
     function setTextPosition(value) {
         let pos = parseInt(value);
-        pos = Math.min(85, Math.max(15, pos));
-        scrollText.style.left = pos + "%";
-        scrollText.style.transform = "translateX(-" + pos + "%)";
-        textPositionValue.innerText = pos + "%";
+        
+        if (pos <= 35) {
+            pos = Math.min(35, Math.max(0, pos));
+            scrollText.style.left = pos + "%";
+            scrollText.style.transform = "translateX(0%)";
+            textPositionValue.innerText = pos + "% (বাম)";
+        } else {
+            pos = Math.min(100, Math.max(65, pos));
+            scrollText.style.left = pos + "%";
+            scrollText.style.transform = "translateX(-100%)";
+            textPositionValue.innerText = pos + "% (ডান)";
+        }
+        
+        textPositionRange.value = pos;
     }
     
     function adjustTextPosition(change) {
         let newVal = parseInt(textPositionRange.value) + change;
-        newVal = Math.min(85, Math.max(15, newVal));
-        textPositionRange.value = newVal;
+        newVal = Math.min(100, Math.max(0, newVal));
+        
+        if (newVal > 35 && newVal < 65) {
+            if (change > 0) {
+                newVal = 65;
+            } else {
+                newVal = 35;
+            }
+        }
+        
         setTextPosition(newVal);
     }
 
-    // Text Drag
     function onTextTouchStart(e) {
         e.preventDefault();
         e.stopPropagation();
-        if(isAutoScrolling) isAutoScrolling = false;
+        
+        if(isAutoScrolling) {
+            isAutoScrolling = false;
+            if(scrollInterval) clearInterval(scrollInterval);
+            statusMsg.innerText = "⏸️ স্ক্রলিং থামানো হয়েছে";
+            setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত", 1000);
+        }
+        
         isDraggingText = true;
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        
+        const currentLeftPercent = parseFloat(scrollText.style.left) || 0;
+        const screenWidth = window.innerWidth;
+        const currentLeftPx = (currentLeftPercent / 100) * screenWidth;
+        dragStartX = clientX;
+        dragStartLeft = currentLeftPx;
+        
         dragStartY = clientY;
         dragStartTop = currentY;
+        
         document.addEventListener('mousemove', onTextTouchMove);
         document.addEventListener('touchmove', onTextTouchMove, { passive: false });
         document.addEventListener('mouseup', onTextTouchEnd);
@@ -716,7 +795,40 @@
     function onTextTouchMove(e) {
         if(!isDraggingText) return;
         e.preventDefault();
+        
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        
+        let newLeftPx = dragStartLeft + (clientX - dragStartX);
+        const screenWidth = window.innerWidth;
+        let newLeftPercent = (newLeftPx / screenWidth) * 100;
+        
+        if (newLeftPercent <= 35) {
+            newLeftPercent = Math.min(35, Math.max(0, newLeftPercent));
+            scrollText.style.left = newLeftPercent + "%";
+            scrollText.style.transform = "translateX(0%)";
+            textPositionValue.innerText = Math.round(newLeftPercent) + "% (বাম)";
+        } else if (newLeftPercent >= 65) {
+            newLeftPercent = Math.min(100, Math.max(65, newLeftPercent));
+            scrollText.style.left = newLeftPercent + "%";
+            scrollText.style.transform = "translateX(-100%)";
+            textPositionValue.innerText = Math.round(newLeftPercent) + "% (ডান)";
+        } else {
+            if (newLeftPercent < 50) {
+                newLeftPercent = 35;
+                scrollText.style.left = newLeftPercent + "%";
+                scrollText.style.transform = "translateX(0%)";
+                textPositionValue.innerText = newLeftPercent + "% (বাম)";
+            } else {
+                newLeftPercent = 65;
+                scrollText.style.left = newLeftPercent + "%";
+                scrollText.style.transform = "translateX(-100%)";
+                textPositionValue.innerText = newLeftPercent + "% (ডান)";
+            }
+        }
+        
+        textPositionRange.value = newLeftPercent;
+        
         let newTop = dragStartTop + (clientY - dragStartY);
         const minY = -scrollText.offsetHeight + 50;
         const maxY = displayArea.offsetHeight - 50;
@@ -757,7 +869,7 @@
                 video.autoplay = true;
                 video.loop = true;
                 video.muted = true;
-                video.className = 'bg-media';
+                video.className = 'bg-media-video';
                 displayArea.insertBefore(video, displayArea.firstChild);
                 currentBgElement = video;
                 video.play();
@@ -878,10 +990,14 @@
     }
 
     async function switchCamera() {
-        if(mediaStream) mediaStream.getTracks().forEach(track => track.stop());
+        if(!isCameraActive) {
+            alert("আগে ক্যামেরা চালু করুন!");
+            return;
+        }
+        stopCamera();
         currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
-        const success = await startCamera();
-        if(success) setBeautyMode(currentBeautyMode);
+        await startCamera();
+        if(isCameraActive) setBeautyMode(currentBeautyMode);
     }
 
     function refreshAndStartScroll() {
@@ -909,17 +1025,24 @@
     async function toggleCamera() {
         if(videoCont.style.display === "block") {
             videoCont.style.display = "none";
-            if(mediaStream) { mediaStream.getTracks().forEach(track => track.stop()); mediaStream = null; }
+            stopCamera();
+            cameraBtn.style.background = "#28a745";
+            cameraBtn.innerHTML = "📷 ক্যামেরা";
+            statusMsg.innerText = "📷 ক্যামেরা বন্ধ";
         } else {
             videoCont.style.display = "block";
             const success = await startCamera();
             if(success) {
                 setBeautyMode(currentBeautyMode);
                 setTimeout(() => makeDraggable(videoCont), 100);
+                cameraBtn.style.background = "#dc3545";
+                cameraBtn.innerHTML = "🔴 ক্যামেরা বন্ধ";
+                statusMsg.innerText = "✅ ক্যামেরা চালু";
             } else {
                 videoCont.style.display = "none";
             }
         }
+        setTimeout(() => statusMsg.innerText = "✅ প্রস্তুত", 2000);
     }
 
     function updateTimerDisplay() {
@@ -937,7 +1060,10 @@
     function stopTimer() { if(timerInterval) clearInterval(timerInterval); if(activeRecordings === 0) timerDisplay.style.display = 'none'; }
 
     async function toggleCameraRecording() {
-        if(!mediaStream) { alert("ক্যামেরা অন করুন!"); return; }
+        if(!isCameraActive) { 
+            alert("📷 আগে ক্যামেরা চালু করুন!");
+            return; 
+        }
         if(!isCameraRecording) {
             cameraChunks = [];
             cameraRecorder = new MediaRecorder(mediaStream, { mimeType: getMimeType() });
@@ -1085,7 +1211,7 @@
     resizeText(24);
     resizeCam(100);
     updateSpeed(2);
-    setTextPosition(25);
+    setTextPosition(0);
     updateLiveText();
     setBeautyMode('off');
     changeTextColor('#ffffff');
@@ -1095,6 +1221,13 @@
         videoCont.style.bottom = '100px';
         videoCont.style.top = 'auto';
     }, 100);
+    
+    // Check camera support
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        statusMsg.innerText = "⚠️ এই ব্রাউজার ক্যামেরা সাপোর্ট করে না! Chrome ব্যবহার করুন";
+        cameraBtn.disabled = true;
+        cameraBtn.style.opacity = "0.5";
+    }
 </script>
 </body>
-                    </html>
+</html>
